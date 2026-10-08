@@ -1,0 +1,45 @@
+<?php
+
+namespace App\Enums;
+
+use App\Concerns\HasEnumOptions;
+
+enum UserRole: string
+{
+    use HasEnumOptions;
+
+    case Venue = 'venue';
+    case Band = 'band';
+    case Organiser = 'organiser';
+    case Admin = 'admin';
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::Venue => 'Venue',
+            self::Band => 'Band',
+            self::Organiser => 'Organiser',
+            self::Admin => 'Admin',
+        };
+    }
+
+    public function description(): string
+    {
+        return match ($this) {
+            self::Venue => 'I manage a venue for live music',
+            self::Band => "I'm a musician or in a band",
+            self::Organiser => 'I organise music events',
+            self::Admin => 'Platform administrator',
+        };
+    }
+
+    /**
+     * Roles a visitor may pick for themselves at sign-up. Admin is never self-assigned.
+     *
+     * @return list<self>
+     */
+    public static function registrable(): array
+    {
+        return [self::Venue, self::Band, self::Organiser];
+    }
+}
