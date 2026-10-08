@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
@@ -21,6 +22,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property string $email
  * @property string|null $phone
  * @property UserRole $role
+ * @property string|null $profile_photo_path
  * @property Carbon|null $email_verified_at
  * @property string $password
  * @property string|null $two_factor_secret
@@ -39,6 +41,16 @@ class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, TwoFactorAuthenticatable;
+
+    protected static function booted(): void
+    {
+        // Profiles and links cascade in the database; the photo file has to be removed by hand.
+        static::deleted(function (User $user): void {
+            if ($user->profile_photo_path !== null) {
+                Storage::disk('public')->delete($user->profile_photo_path);
+            }
+        });
+    }
 
     /**
      * Get the attributes that should be cast.
@@ -76,6 +88,16 @@ class User extends Authenticatable implements MustVerifyEmail
     public function organiserProfile(): HasOne
     {
         return $this->hasOne(OrganiserProfile::class);
+    }
+
+    /**
+     * Public URL of the user's profile photo, if they have uploaded one.
+     */
+    public function profilePhotoUrl(): ?string
+    {
+        return $this->profile_photo_path !== null
+            ? Storage::disk('public')->url($this->profile_photo_path)
+            : null;
     }
 
     /**

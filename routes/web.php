@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\Auth\Register;
+use App\Livewire\Profile\EditProfile;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
@@ -10,6 +11,7 @@ Route::livewire('register', Register::class)->middleware('guest')->name('registe
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
+    Route::livewire('profile', EditProfile::class)->name('profile.show');
 });
 
 require __DIR__.'/settings.php';

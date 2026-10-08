@@ -1,7 +1,4 @@
 @php
-    use App\Enums\EventDay;
-    use App\Enums\LinkKind;
-    use App\Enums\SoundEngineer;
     use App\Enums\UserRole;
 
     $steps = array_values($this->steps());
@@ -88,9 +85,7 @@
             @case('personal')
                 <flux:text>{{ __('Tell us a bit about yourself') }}</flux:text>
 
-                <flux:input wire:model="name" :label="__('Your Name')" required autofocus autocomplete="name" :placeholder="__('Enter your name')" />
-
-                <flux:input wire:model.blur="phone" :label="__('Phone Number')" type="tel" required autocomplete="tel" :placeholder="__('Enter your phone number')" />
+                @include('partials.profile-fields.personal')
 
                 <div class="flex flex-col gap-2" role="group" aria-labelledby="role-label">
                     <flux:label id="role-label">{{ __('I am a...') }}</flux:label>
@@ -111,51 +106,13 @@
                     {{ $role === UserRole::Venue->value ? __("Enter the venue manager's contact details") : __("Enter your band manager's contact details") }}
                 </flux:text>
 
-                <flux:input wire:model="manager_name" :label="__('Manager Name')" required autofocus :placeholder="__('Enter manager\'s name')" />
-
-                <flux:input wire:model.blur="manager_phone" :label="__('Manager Phone Number')" type="tel" required :placeholder="__('Enter manager\'s phone number')" />
-
-                <flux:input wire:model="manager_email" :label="__('Manager Email')" type="email" required :placeholder="__('Enter manager\'s email')" />
+                @include('partials.profile-fields.manager')
                 @break
 
             @case('venue')
                 <flux:text>{{ __('Tell us about your venue') }}</flux:text>
 
-                <flux:input wire:model="capacity" :label="__('Venue Capacity')" type="number" min="1" required autofocus :placeholder="__('Maximum number of people')" />
-
-                <flux:input wire:model="location" :label="__('Venue Location')" required autocomplete="street-address" :placeholder="__('Enter venue address')" />
-
-                <flux:input wire:model="min_door_charge" :label="__('Minimum Door Charge (ZAR)')" type="number" min="0" step="1" required placeholder="0" />
-
-                <div class="flex flex-col gap-2" role="group" aria-labelledby="sound-engineer-label">
-                    <flux:label id="sound-engineer-label">{{ __('Sound Engineer') }}</flux:label>
-                    @foreach (SoundEngineer::cases() as $option)
-                        <x-choice-card
-                            wire:click="$set('sound_engineer', '{{ $option->value }}')"
-                            :label="$option->label()"
-                            :selected="$sound_engineer === $option->value"
-                        />
-                    @endforeach
-                    <flux:error name="sound_engineer" />
-                </div>
-
-                @if ($sound_engineer === SoundEngineer::InHouse->value)
-                    <flux:input wire:model="sound_engineer_name" :label="__('Sound Engineer Name')" required :placeholder="__('Enter sound engineer\'s name')" />
-                @endif
-
-                <div class="flex flex-col gap-2" role="group" aria-labelledby="equipment-label">
-                    <flux:label id="equipment-label">{{ __('Do you have your own equipment?') }}</flux:label>
-                    <flux:text size="sm" class="-mt-1">{{ __('Drum kit, amps, PA system, etc.') }}</flux:text>
-                    <div class="flex gap-2">
-                        <x-choice-card wire:click="$set('has_own_equipment', true)" class="text-center" :label="__('Yes')" :selected="$has_own_equipment === true" />
-                        <x-choice-card wire:click="$set('has_own_equipment', false)" class="text-center" :label="__('No')" :selected="$has_own_equipment === false" />
-                    </div>
-                    <flux:error name="has_own_equipment" />
-                </div>
-
-                @if ($has_own_equipment)
-                    <flux:textarea wire:model="equipment_details" :label="__('Equipment Details (optional)')" rows="3" :placeholder="__('List available equipment...')" />
-                @endif
+                @include('partials.profile-fields.venue')
                 @break
 
             @case('event-days')
@@ -164,52 +121,27 @@
                     <flux:text size="sm">{{ __('You can select both options') }}</flux:text>
                 </div>
 
-                <div class="flex flex-col gap-3" role="group" aria-label="{{ __('Event days') }}">
-                    @foreach (EventDay::cases() as $option)
-                        <x-choice-card
-                            wire:click="toggleEventDay('{{ $option->value }}')"
-                            checkbox
-                            :label="$option->label()"
-                            :description="$option->description()"
-                            :selected="in_array($option->value, $event_days, true)"
-                        />
-                    @endforeach
-                    <flux:error name="event_days" />
-                </div>
+                @include('partials.profile-fields.event-days')
                 @break
 
             @case('band')
                 <flux:text>{{ __('Tell us about your band') }}</flux:text>
 
-                <flux:input wire:model="band_name" :label="__('Band Name')" required autofocus :placeholder="__('Enter your band\'s name')" />
-
-                <flux:input wire:model="member_count" :label="__('Number of Members')" type="number" min="1" required :placeholder="__('How many members are in the band?')" />
-
-                <flux:textarea wire:model="member_names" :label="__('Member Names')" rows="3" required :placeholder="__('List each member\'s name, separated by commas')" />
-
-                <flux:input wire:model="genre" :label="__('Genre')" required :placeholder="__('e.g. Rock, Jazz, Hip-Hop')" />
-
-                <flux:textarea wire:model="bio" :label="__('Short Bio (optional)')" rows="3" :placeholder="__('Tell us a bit about your band...')" />
+                @include('partials.profile-fields.band')
+                @include('partials.profile-fields.members')
                 @break
 
             @case('links')
                 <flux:text>{{ __('Share your music and social links') }}</flux:text>
 
-                @include('livewire.auth.partials.link-list', ['field' => 'music_links', 'kind' => LinkKind::Music, 'label' => __('Music Links (optional)'), 'addLabel' => __('Add music link')])
-
-                @include('livewire.auth.partials.link-list', ['field' => 'social_links', 'kind' => LinkKind::Social, 'label' => __('Social Links (optional)'), 'addLabel' => __('Add social link')])
+                @include('partials.profile-fields.links')
                 @break
 
             @case('organiser')
                 <flux:text>{{ __('Tell us about your organisation') }}</flux:text>
 
-                <flux:input wire:model="org_name" :label="__('Organisation Name')" required autofocus :placeholder="__('Enter your organisation\'s name')" />
-
-                <flux:input wire:model.blur="contact_number" :label="__('Contact Number')" type="tel" required autocomplete="tel" :placeholder="__('Enter a contact phone number')" />
-
-                <flux:input wire:model="contact_email" :label="__('Contact Email')" type="email" required autocomplete="email" :placeholder="__('Enter a contact email')" />
-
-                @include('livewire.auth.partials.link-list', ['field' => 'social_links', 'kind' => LinkKind::Social, 'label' => __('Social Links (optional)'), 'addLabel' => __('Add social link')])
+                @include('partials.profile-fields.organiser')
+                @include('partials.profile-fields.links', ['socialOnly' => true])
                 @break
         @endswitch
 
