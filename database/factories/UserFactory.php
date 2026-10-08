@@ -2,7 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Enums\UserRole;
+use App\Models\BandProfile;
+use App\Models\OrganiserProfile;
 use App\Models\User;
+use App\Models\VenueProfile;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -27,6 +31,8 @@ class UserFactory extends Factory
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
+            'phone' => fake()->numerify('0#########'),
+            'role' => UserRole::Band,
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
@@ -34,6 +40,38 @@ class UserFactory extends Factory
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,
         ];
+    }
+
+    /**
+     * A venue account with its venue profile.
+     */
+    public function venue(): static
+    {
+        return $this->state(['role' => UserRole::Venue])->has(VenueProfile::factory());
+    }
+
+    /**
+     * A band account with its band profile.
+     */
+    public function band(): static
+    {
+        return $this->state(['role' => UserRole::Band])->has(BandProfile::factory());
+    }
+
+    /**
+     * An organiser account with its organiser profile.
+     */
+    public function organiser(): static
+    {
+        return $this->state(['role' => UserRole::Organiser])->has(OrganiserProfile::factory());
+    }
+
+    /**
+     * A platform administrator (no profile).
+     */
+    public function admin(): static
+    {
+        return $this->state(['role' => UserRole::Admin]);
     }
 
     /**
