@@ -1,11 +1,12 @@
 <x-layouts::auth :title="__('Email verification')">
-    <div class="mt-4 flex flex-col gap-6">
+    <div class="flex flex-col gap-6">
+        <x-auth-header :title="__('Verify your email')" :description="__('One last step before you get started')" />
         <flux:text class="text-center">
             {{ __('Please verify your email address by clicking on the link we just emailed to you.') }}
         </flux:text>
 
         @if (session('status') == 'verification-link-sent')
-            <flux:text class="text-center font-medium !dark:text-green-400 !text-green-600">
+            <flux:text class="text-center font-medium text-green-700!">
                 {{ __('A new verification link has been sent to the email address you provided during registration.') }}
             </flux:text>
         @endif
