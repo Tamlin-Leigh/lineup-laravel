@@ -1,7 +1,10 @@
 <?php
 
+use App\Enums\EventCategory;
 use App\Enums\UserRole;
+use App\Models\Event;
 use App\Models\User;
+use Illuminate\Support\Carbon;
 
 test('guests are redirected to the login page', function () {
     $this->get(route('dashboard'))->assertRedirect(route('login'));
@@ -33,6 +36,32 @@ test('a band sees its band dashboard', function () {
         ->assertSee('Welcome back, '.$user->bandProfile->band_name)
         ->assertSee('Booked Before Year End')
         ->assertSee('No upcoming events booked yet.');
+});
+
+test("a band's stats and lists come from its published events", function () {
+    Carbon::setTestNow('2026-10-08 09:00');
+    $user = User::factory()->band()->create();
+    $owned = Event::factory()->for($user, 'owner');
+
+    $owned->create(['title' => 'This Year', 'starts_at' => '2026-11-01 20:00']);
+    $owned->create(['title' => 'Next Year', 'starts_at' => '2027-02-01 20:00']);
+    $owned->draft()->create(['title' => 'Still a Draft', 'starts_at' => '2026-10-20 20:00']);
+    $owned->past()->create(['category' => EventCategory::Festival]);
+    $owned->past()->create(['category' => EventCategory::Festival]);
+    Event::factory()->create(['title' => 'Another Band', 'starts_at' => '2026-10-10 20:00']);
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertViewHas('bookedBeforeYearEnd', 1)
+        ->assertViewHas('completedEvents', 2)
+        ->assertSee('This Year')
+        ->assertSee('Next Year')
+        ->assertDontSee('Still a Draft')
+        ->assertDontSee('Another Band')
+        ->assertSee('Festival &middot; 2', false);
+
+    Carbon::setTestNow();
 });
 
 test('an organiser sees its organiser dashboard', function () {

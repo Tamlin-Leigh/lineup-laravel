@@ -21,6 +21,14 @@
                             {{ __('Dashboard') }}
                         </flux:sidebar.item>
 
+                        <flux:sidebar.item icon="calendar-days" :href="route('calendar')" :current="request()->routeIs('calendar')" wire:navigate>
+                            {{ __('Calendar') }}
+                        </flux:sidebar.item>
+
+                        <flux:sidebar.item icon="ticket" :href="route('events.index')" :current="request()->routeIs('events.*')" wire:navigate>
+                            {{ __('Events') }}
+                        </flux:sidebar.item>
+
                         <flux:sidebar.item icon="user-circle" :href="route('profile.show')" :current="request()->routeIs('profile.show')" wire:navigate>
                             {{ __('Profile') }}
                         </flux:sidebar.item>

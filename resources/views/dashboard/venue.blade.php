@@ -1,6 +1,10 @@
 @php use App\Enums\SoundEngineer; @endphp
 
 <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+    <div class="md:col-span-2">
+        @include('dashboard.upcoming-events')
+    </div>
+
     <x-profile-section :title="$user->name">
         <p class="text-zinc-900 dark:text-white">{{ __('Capacity: :count', ['count' => number_format($venue->capacity)]) }}</p>
         <p class="text-zinc-900 dark:text-white">{{ $venue->location }}</p>

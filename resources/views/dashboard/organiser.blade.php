@@ -1,4 +1,8 @@
 <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+    <div class="md:col-span-2">
+        @include('dashboard.upcoming-events')
+    </div>
+
     <x-profile-section :title="$organiser->org_name">
         <flux:link href="tel:{{ $organiser->contact_number }}">{{ $organiser->contact_number }}</flux:link>
         <flux:link href="mailto:{{ $organiser->contact_email }}">{{ $organiser->contact_email }}</flux:link>
