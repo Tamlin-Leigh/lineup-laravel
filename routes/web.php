@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\DashboardController;
 use App\Livewire\Auth\Register;
 use App\Livewire\Profile\EditProfile;
 use Illuminate\Support\Facades\Auth;
@@ -12,8 +14,12 @@ Route::get('/', fn () => redirect()->route(Auth::check() ? 'dashboard' : 'login'
 Route::livewire('register', Register::class)->middleware('guest')->name('register');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::view('dashboard', 'dashboard')->name('dashboard');
+    Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::livewire('profile', EditProfile::class)->name('profile.show');
+
+    Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/', AdminDashboardController::class)->name('dashboard');
+    });
 });
 
 require __DIR__.'/settings.php';
