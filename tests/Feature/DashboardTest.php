@@ -2,6 +2,7 @@
 
 use App\Enums\EventCategory;
 use App\Enums\UserRole;
+use App\Models\Availability;
 use App\Models\Event;
 use App\Models\User;
 use Illuminate\Support\Carbon;
@@ -62,6 +63,28 @@ test("a band's stats and lists come from its published events", function () {
         ->assertSee('Festival &middot; 2', false);
 
     Carbon::setTestNow();
+});
+
+test('every role sees its upcoming free days on the dashboard', function (string $state) {
+    Carbon::setTestNow('2026-10-08 09:00');
+    $user = User::factory()->{$state}()->create();
+    Availability::factory()->for($user)->create(['date' => '2026-10-02']);
+    Availability::factory()->for($user)->create(['date' => '2026-10-09']);
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertSee('Your Availability')
+        ->assertSee('Fri 9 Oct')
+        ->assertDontSee('Fri 2 Oct');
+
+    Carbon::setTestNow();
+})->with(['venue', 'band', 'organiser']);
+
+test('the dashboard prompts users to mark free days', function () {
+    $this->actingAs(User::factory()->band()->create())
+        ->get(route('dashboard'))
+        ->assertSee('Mark the days you are free so others can find you for a gig.');
 });
 
 test('an organiser sees its organiser dashboard', function () {

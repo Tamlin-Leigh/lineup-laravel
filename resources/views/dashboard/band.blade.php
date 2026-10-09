@@ -4,6 +4,8 @@
         <x-stat-card :label="__('Events Completed')" :value="$completedEvents" icon="check-circle" />
     </div>
 
+    @include('dashboard.availability')
+
     @include('dashboard.upcoming-events')
 
     <x-profile-section :title="__('Tags From Past Events')">

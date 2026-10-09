@@ -15,5 +15,8 @@ test('the seeder creates a demo account per role with sample events', function (
         ->and($band->events()->inTab('active')->count())->toBe(3)
         ->and($band->events()->inTab('draft')->count())->toBe(2)
         ->and($band->events()->inTab('past')->count())->toBe(3)
-        ->and(Event::count())->toBe(10);
+        ->and(Event::count())->toBe(10)
+        ->and(User::all()->filter(fn (User $user) => $user->role !== UserRole::Admin)->every(
+            fn (User $user) => $user->availabilities()->upcoming()->exists(),
+        ))->toBeTrue();
 });

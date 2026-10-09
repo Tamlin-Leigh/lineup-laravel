@@ -25,7 +25,14 @@ lived in Firestore security rules and client-side services into a proper server-
 | `organiser_profiles` | user_id, org name, contact number/email                                                            |
 | `links`              | morphs `linkable`, `kind`, `platform`, `url`                                                       |
 | `events`             | owner, venue (optional BandLink venue), title, description, category, location, `starts_at`, price, `status` |
-| `bookings`           | band ↔ venue/event, `status`, start/end                                                            |
+| `availabilities`     | user_id, `date` (unique per user): whole days an account is free for a gig                         |
+| `contact_requests`   | sender, recipient, message, dates asked about: log of "Contact now" emails (for rate limiting)   |
+
+## Product goal
+
+Close the communication gap between venues, bands and organisers: each publishes the days they are free, the
+others filter by role and date to find a match, and "Contact now" starts the conversation by email. Events
+(phase 5) remain each account's own diary of confirmed gigs.
 
 ## Phases
 
@@ -35,5 +42,7 @@ lived in Firestore security rules and client-side services into a proper server-
 - [x] **3. Auth pages**: log in, password reset, verification and 2FA screens on the BandLink split layout; `/` redirects like the prototype
 - [x] **4. Dashboards**: dashboard per role, `role` middleware, admin overview, BandLink app shell (band event stats are wired up in phase 5)
 - [x] **5. Events & calendar**: CRUD, month calendar view, `upcoming()` / `past()` scopes, `EventPolicy`; open to venues, bands and organisers (the prototype limited it to bands); app timezone defaults to Africa/Johannesburg
-- [ ] **6. Booking workflow**: band requests a slot, venue accepts or declines; status transitions guarded by `BookingStatus::canTransitionTo()`; domain events, queued mail + database notifications
-- [ ] **7. Polish**: README screenshots, demo credentials, deployment
+- [x] **6. Availability**: venues, bands and organisers mark whole days they are free on the calendar ("mark all weekends" = Fri-Sun, "clear month"); today up to two years ahead; shown with their events and on every dashboard
+- [ ] **7. Discover**: filter every role by available dates (plus location / genre); read-only public profiles; calendar overlay of who is free each day
+- [ ] **8. Contact now**: modal with a short message sends the recipient an email with the sender's profile and dates, Reply-To the sender (recipient's address stays private); rate limited and logged
+- [ ] **9. Polish**: README screenshots, demo data with availability, deployment
