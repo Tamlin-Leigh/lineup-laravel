@@ -1,16 +1,21 @@
-{{-- Event stats and lists are empty until events and bookings exist (phases 5 and 6). --}}
 <div class="flex flex-col gap-5">
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <x-stat-card :label="__('Booked Before Year End')" :value="0" icon="calendar" />
-        <x-stat-card :label="__('Events Completed')" :value="0" icon="check-circle" />
+        <x-stat-card :label="__('Booked Before Year End')" :value="$bookedBeforeYearEnd" icon="calendar" />
+        <x-stat-card :label="__('Events Completed')" :value="$completedEvents" icon="check-circle" />
     </div>
 
-    <x-profile-section :title="__('Upcoming Events')">
-        <flux:text>{{ __('No upcoming events booked yet.') }}</flux:text>
-    </x-profile-section>
+    @include('dashboard.upcoming-events')
 
     <x-profile-section :title="__('Tags From Past Events')">
-        <flux:text>{{ __('No completed events yet.') }}</flux:text>
+        @if ($pastCategoryCounts->isNotEmpty())
+            <div class="flex flex-wrap gap-2">
+                @foreach ($pastCategoryCounts as $category => $count)
+                    <x-pill class="px-3 py-1">{{ $category }} &middot; {{ $count }}</x-pill>
+                @endforeach
+            </div>
+        @else
+            <flux:text>{{ __('No completed events yet.') }}</flux:text>
+        @endif
     </x-profile-section>
 
     <x-profile-section :title="__('Your Band')">
