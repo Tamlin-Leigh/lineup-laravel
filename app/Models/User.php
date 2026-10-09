@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Enums\UserRole;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
@@ -17,6 +19,8 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property int $id
  * @property string $name
  * @property string $email
+ * @property string|null $phone
+ * @property UserRole $role
  * @property Carbon|null $email_verified_at
  * @property string $password
  * @property string|null $two_factor_secret
@@ -25,8 +29,11 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
+ * `role` is deliberately not fillable: it is only ever set by RegisterUser (or a seeder),
+ * so no request payload can promote an account.
  */
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'email', 'phone', 'password'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -43,7 +50,32 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'role' => UserRole::class,
         ];
+    }
+
+    /**
+     * @return HasOne<VenueProfile, $this>
+     */
+    public function venueProfile(): HasOne
+    {
+        return $this->hasOne(VenueProfile::class);
+    }
+
+    /**
+     * @return HasOne<BandProfile, $this>
+     */
+    public function bandProfile(): HasOne
+    {
+        return $this->hasOne(BandProfile::class);
+    }
+
+    /**
+     * @return HasOne<OrganiserProfile, $this>
+     */
+    public function organiserProfile(): HasOne
+    {
+        return $this->hasOne(OrganiserProfile::class);
     }
 
     /**

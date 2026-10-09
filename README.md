@@ -28,6 +28,9 @@ npm install && npm run dev
 - Mailpit (caught emails): http://localhost:8025
 - MySQL from a GUI client: `127.0.0.1:3307`, user `sail`, password `password`, database `bandlink`
 
+The seeder creates one demo account per role, all with the password `password`:
+`venue@example.com`, `band@example.com`, `organiser@example.com` and `admin@example.com`.
+
 ## Everyday commands
 
 From **Git Bash / WSL** you can use the Sail wrapper, `./vendor/bin/sail <cmd>`.
