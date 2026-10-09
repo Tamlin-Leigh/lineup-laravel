@@ -16,37 +16,41 @@ use Livewire\Component;
 
 /**
  * The signed-in user's profile: read-only by default, with an edit mode that saves
- * every section for their role at once. Bands get tabs, as in the prototype.
+ * every section for their role at once. Every role gets the same tabbed layout (the
+ * prototype only had tabs for bands), with the tabs that fit its profile.
  */
 #[Title('Profile')]
 class EditProfile extends Component
 {
     use InteractsWithProfileForm;
 
-    public const BAND_TABS = [
-        'account' => 'Account',
-        'band' => 'Band Profile',
-        'members' => 'Members',
-        'manager' => 'Manager',
-        'links' => 'Links',
-    ];
-
     /**
-     * The band tab that shows each field, so a failed save can jump to the first error.
+     * The tab that shows each field, so a failed save can jump to the first error.
      */
     private const FIELD_TABS = [
         'name' => 'account',
         'phone' => 'account',
+        'manager_name' => 'manager',
+        'manager_phone' => 'manager',
+        'manager_email' => 'manager',
+        'capacity' => 'venue',
+        'location' => 'venue',
+        'min_door_charge' => 'venue',
+        'sound_engineer' => 'venue',
+        'sound_engineer_name' => 'venue',
+        'has_own_equipment' => 'venue',
+        'equipment_details' => 'venue',
+        'event_days' => 'event-days',
         'band_name' => 'band',
         'genre' => 'band',
         'bio' => 'band',
         'member_count' => 'members',
         'member_names' => 'members',
-        'manager_name' => 'manager',
-        'manager_phone' => 'manager',
-        'manager_email' => 'manager',
         'music_links' => 'links',
         'social_links' => 'links',
+        'org_name' => 'organiser',
+        'contact_number' => 'organiser',
+        'contact_email' => 'organiser',
     ];
 
     #[Locked]
@@ -121,10 +125,46 @@ class EditProfile extends Component
         };
     }
 
+    /**
+     * Tab key => label for this user's role.
+     *
+     * @return array<string, string>
+     */
+    public function tabs(): array
+    {
+        return ['account' => __('Account')] + match ($this->user->role) {
+            UserRole::Venue => [
+                'venue' => __('Venue Details'),
+                'manager' => __('Manager'),
+                'event-days' => __('Event Preferences'),
+            ],
+            UserRole::Band => [
+                'band' => __('Band Profile'),
+                'members' => __('Members'),
+                'manager' => __('Manager'),
+                'links' => __('Links'),
+            ],
+            UserRole::Organiser => [
+                'organiser' => __('Organisation'),
+                'links' => __('Links'),
+            ],
+            UserRole::Admin => [],
+        };
+    }
+
+    /**
+     * The tab to show: the requested one if this role has it, otherwise Account.
+     */
+    public function activeTab(): string
+    {
+        return array_key_exists($this->tab, $this->tabs()) ? $this->tab : 'account';
+    }
+
     private function tabFor(string $errorKey): string
     {
         $field = explode('.', str_replace('form.', '', $errorKey))[0];
+        $tab = self::FIELD_TABS[$field] ?? 'account';
 
-        return self::FIELD_TABS[$field] ?? 'account';
+        return array_key_exists($tab, $this->tabs()) ? $tab : 'account';
     }
 }

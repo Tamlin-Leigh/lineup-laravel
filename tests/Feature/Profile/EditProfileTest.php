@@ -191,3 +191,77 @@ test('a profile missing its role record is created on first save', function () {
 
     expect($user->organiserProfile()->sole()->org_name)->toBe('Late Starters');
 });
+
+test('every role gets the same tabbed profile, with the tabs for its profile', function (string $state, array $tabs) {
+    $component = Livewire::actingAs(User::factory()->{$state}()->create())->test(EditProfile::class);
+
+    expect(array_keys($component->instance()->tabs()))->toBe($tabs);
+
+    foreach ($tabs as $tab) {
+        $component->assertSeeHtml('data-test="profile-tab-'.$tab.'"');
+    }
+})->with([
+    'venue' => ['venue', ['account', 'venue', 'manager', 'event-days']],
+    'band' => ['band', ['account', 'band', 'members', 'manager', 'links']],
+    'organiser' => ['organiser', ['account', 'organiser', 'links']],
+]);
+
+test('a failed save jumps to the tab with the error for every role', function (string $state, string $field, string|array $value, string $tab) {
+    Livewire::actingAs(User::factory()->{$state}()->create())
+        ->test(EditProfile::class)
+        ->call('edit')
+        ->set($field, $value)
+        ->call('save')
+        ->assertHasErrors([$field])
+        ->assertSet('tab', $tab);
+})->with([
+    'venue capacity' => ['venue', 'form.capacity', '0', 'venue'],
+    'venue manager email' => ['venue', 'form.manager_email', 'ryan@gmail', 'manager'],
+    'venue event days' => ['venue', 'form.event_days', [], 'event-days'],
+    'organiser contact email' => ['organiser', 'form.contact_email', 'not-an-email', 'organiser'],
+    'organiser name' => ['organiser', 'form.name', '', 'account'],
+]);
+
+test('a tab the role does not have falls back to Account', function () {
+    $component = Livewire::actingAs(User::factory()->organiser()->create())
+        ->test(EditProfile::class)
+        ->set('tab', 'members');
+
+    expect($component->instance()->activeTab())->toBe('account');
+});
+
+test('links show the logo of their platform', function () {
+    $user = User::factory()->band()->create();
+    Link::factory()->for($user->bandProfile, 'linkable')->create(['kind' => LinkKind::Music, 'platform' => LinkPlatform::Spotify]);
+    Link::factory()->for($user->bandProfile, 'linkable')->create(['kind' => LinkKind::Social, 'platform' => LinkPlatform::Website]);
+
+    $html = Livewire::actingAs($user)->test(EditProfile::class)->html();
+
+    expect($html)
+        ->toContain('color: #1DB954')
+        ->toContain('<title>Spotify</title>')
+        ->toContain('color: #184e6c');
+});
+
+test('every platform has an icon and a colour', function (LinkPlatform $platform) {
+    expect($platform->color())->toMatch('/^#[0-9A-F]{6}$/i');
+
+    if ($icon = $platform->brandIcon()) {
+        expect(svg($icon)->contents())->toContain('<path');
+    } else {
+        expect($platform->fallbackIcon())->toBeIn(['globe-alt', 'link']);
+    }
+})->with(LinkPlatform::cases());
+
+test('the link editor shows the icon for the chosen platform', function () {
+    $html = Livewire::actingAs(User::factory()->band()->create())
+        ->test(EditProfile::class)
+        ->call('edit')
+        ->call('addLink', 'music_links')
+        ->html();
+
+    expect($html)
+        ->toContain('form.music_links.0.platform')
+        ->toContain('<title>Spotify</title>')
+        ->toContain('<title>Bandcamp</title>');
+});

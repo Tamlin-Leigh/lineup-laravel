@@ -12,7 +12,19 @@
 
     @foreach ($links as $index => $link)
         <div wire:key="{{ $field }}-{{ $index }}">
-            <div class="flex gap-2">
+            <div class="flex items-center gap-2">
+                {{-- Follows the platform picked in the select straight away (wire:model updates $wire in the browser). --}}
+                <span class="grid size-10 shrink-0 place-items-center rounded-lg border border-zinc-200 bg-white">
+                    @foreach ($kind->platforms() as $platform)
+                        <x-platform-icon
+                            :platform="$platform"
+                            class="size-5"
+                            x-show="$wire.$get('form.{{ $field }}.{{ $index }}.platform') === '{{ $platform->value }}'"
+                            :style="($link['platform'] ?? null) === $platform->value ? null : 'display: none'"
+                        />
+                    @endforeach
+                </span>
+
                 <flux:select wire:model="form.{{ $field }}.{{ $index }}.platform" class="max-w-36" aria-label="{{ __('Platform') }}">
                     @foreach ($kind->platforms() as $platform)
                         <flux:select.option value="{{ $platform->value }}">{{ $platform->label() }}</flux:select.option>

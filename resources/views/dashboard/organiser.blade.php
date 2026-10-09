@@ -14,9 +14,10 @@
 
     @if ($organiser->links->isNotEmpty())
         <x-profile-section :title="__('Links')">
-            <ul class="flex flex-col gap-1.5">
+            <ul class="flex flex-col gap-2">
                 @foreach ($organiser->links as $link)
-                    <li>
+                    <li class="flex items-center gap-2.5">
+                        <x-platform-icon :platform="$link->platform" class="size-5" />
                         <flux:link href="{{ $link->url }}" target="_blank" rel="noopener noreferrer">{{ $link->platform->label() }}</flux:link>
                     </li>
                 @endforeach
