@@ -144,7 +144,7 @@ test('a venue can register', function () {
         ])
         ->call('next')
         ->assertHasNoErrors()
-        ->call('toggleEventDay', EventDay::Weekend->value)
+        ->set('form.event_days', [EventDay::Weekend->value])
         ->call('next')
         ->assertHasNoErrors()
         ->assertRedirect(route('dashboard', absolute: false));

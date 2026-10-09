@@ -9,29 +9,26 @@
 <div class="flex flex-col gap-2" role="group" aria-labelledby="sound-engineer-label">
     <flux:label id="sound-engineer-label">{{ __('Sound Engineer') }}</flux:label>
     @foreach (SoundEngineer::cases() as $option)
-        <x-choice-card
-            wire:click="$set('form.sound_engineer', '{{ $option->value }}')"
-            :label="$option->label()"
-            :selected="$form->sound_engineer === $option->value"
-        />
+        <x-choice-card model="form.sound_engineer" :value="$option->value" :label="$option->label()" />
     @endforeach
     <flux:error name="form.sound_engineer" />
 </div>
 
-@if ($form->sound_engineer === SoundEngineer::InHouse->value)
-    <flux:input wire:model="form.sound_engineer_name" :label="__('Sound Engineer Name')" required :placeholder="__('Enter sound engineer\'s name')" />
-@endif
+{{-- Shown and hidden in the browser so picking an option doesn't wait on the server. --}}
+<div x-show="$wire.$get('form.sound_engineer') === '{{ SoundEngineer::InHouse->value }}'" @style(['display: none' => $form->sound_engineer !== SoundEngineer::InHouse->value])>
+    <flux:input wire:model="form.sound_engineer_name" :label="__('Sound Engineer Name')" :placeholder="__('Enter sound engineer\'s name')" />
+</div>
 
 <div class="flex flex-col gap-2" role="group" aria-labelledby="equipment-label">
     <flux:label id="equipment-label">{{ __('Do you have your own equipment?') }}</flux:label>
     <flux:text size="sm" class="-mt-1">{{ __('Drum kit, amps, PA system, etc.') }}</flux:text>
     <div class="flex gap-2">
-        <x-choice-card wire:click="$set('form.has_own_equipment', true)" class="text-center" :label="__('Yes')" :selected="$form->has_own_equipment === true" />
-        <x-choice-card wire:click="$set('form.has_own_equipment', false)" class="text-center" :label="__('No')" :selected="$form->has_own_equipment === false" />
+        <x-choice-card model="form.has_own_equipment" :value="true" class="text-center" :label="__('Yes')" />
+        <x-choice-card model="form.has_own_equipment" :value="false" class="text-center" :label="__('No')" />
     </div>
     <flux:error name="form.has_own_equipment" />
 </div>
 
-@if ($form->has_own_equipment)
+<div x-show="$wire.$get('form.has_own_equipment') === true" @style(['display: none' => $form->has_own_equipment !== true])>
     <flux:textarea wire:model="form.equipment_details" :label="__('Equipment Details (optional)')" rows="3" :placeholder="__('List available equipment...')" />
-@endif
+</div>

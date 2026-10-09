@@ -42,9 +42,9 @@
             <!-- Remember Me -->
             <flux:checkbox name="remember" :label="__('Remember me')" :checked="old('remember')" />
 
-            <flux:button variant="primary" type="submit" class="mt-1 w-full" data-test="login-button">
+            <x-auth-button class="mt-1" data-test="login-button">
                 {{ __('Log in') }}
-            </flux:button>
+            </x-auth-button>
         </form>
 
         <p class="text-center text-sm text-brand-muted">

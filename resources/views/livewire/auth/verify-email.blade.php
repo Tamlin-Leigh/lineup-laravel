@@ -12,11 +12,11 @@
         @endif
 
         <div class="flex flex-col items-center justify-between space-y-3">
-            <form method="POST" action="{{ route('verification.send') }}">
+            <form method="POST" action="{{ route('verification.send') }}" class="w-full">
                 @csrf
-                <flux:button type="submit" variant="primary" class="w-full">
+                <x-auth-button>
                     {{ __('Resend verification email') }}
-                </flux:button>
+                </x-auth-button>
             </form>
 
             <form method="POST" action="{{ route('logout') }}">

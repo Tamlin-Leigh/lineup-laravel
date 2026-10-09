@@ -79,13 +79,9 @@
                         @enderror
                     </div>
 
-                    <flux:button
-                        variant="primary"
-                        type="submit"
-                        class="w-full"
-                    >
+                    <x-auth-button>
                         {{ __('Continue') }}
-                    </flux:button>
+                    </x-auth-button>
                 </div>
 
                 <div class="mt-5 space-x-0.5 text-sm leading-5 text-center">
