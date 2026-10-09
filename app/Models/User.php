@@ -78,6 +78,16 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Days this user has marked as free for a gig.
+     *
+     * @return HasMany<Availability, $this>
+     */
+    public function availabilities(): HasMany
+    {
+        return $this->hasMany(Availability::class);
+    }
+
+    /**
      * @return HasOne<VenueProfile, $this>
      */
     public function venueProfile(): HasOne

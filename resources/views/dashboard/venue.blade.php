@@ -2,6 +2,10 @@
 
 <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
     <div class="md:col-span-2">
+        @include('dashboard.availability')
+    </div>
+
+    <div class="md:col-span-2">
         @include('dashboard.upcoming-events')
     </div>
 

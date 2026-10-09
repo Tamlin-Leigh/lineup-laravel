@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Events;
 
+use App\Actions\UpdateAvailability;
 use App\Enums\EventStatus;
 use App\Models\Event;
 use App\Models\User;
@@ -16,7 +17,8 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
- * Month view of the signed-in user's events (cancelled ones are left off).
+ * Month view of the signed-in user's events (cancelled ones are left off) and the days they have
+ * marked as free for a gig. In "mark availability" mode, clicking a day toggles it.
  */
 #[Title('Calendar')]
 class Calendar extends Component
@@ -24,6 +26,8 @@ class Calendar extends Component
     /** The month on show, as Y-m; empty means the current month. */
     #[Url]
     public string $month = '';
+
+    public bool $markingAvailability = false;
 
     public function previousMonth(): void
     {
@@ -38,6 +42,41 @@ class Calendar extends Component
     public function today(): void
     {
         $this->month = '';
+    }
+
+    public function toggleDay(string $date, UpdateAvailability $updateAvailability): void
+    {
+        // Reject anything that isn't a real calendar date (e.g. "2026-02-31" would roll over to March).
+        if (! CarbonImmutable::canBeCreatedFromFormat($date, '!Y-m-d')) {
+            return;
+        }
+
+        $day = CarbonImmutable::createFromFormat('!Y-m-d', $date);
+
+        if (! $day instanceof CarbonImmutable || $day->format('Y-m-d') !== $date) {
+            return;
+        }
+
+        $updateAvailability->toggle($this->user(), $day);
+    }
+
+    /**
+     * Mark every Friday, Saturday and Sunday left in the visible month as free.
+     */
+    public function markWeekends(UpdateAvailability $updateAvailability): void
+    {
+        $weekendDays = collect($this->weeks())
+            ->flatten()
+            ->filter(fn (?CarbonImmutable $day) => $day !== null && in_array($day->dayOfWeek, [5, 6, 0], true));
+
+        $updateAvailability->markFree($this->user(), $weekendDays);
+    }
+
+    public function clearMonth(UpdateAvailability $updateAvailability): void
+    {
+        $month = $this->visibleMonth();
+
+        $updateAvailability->clear($this->user(), $month, $month->endOfMonth());
     }
 
     public function visibleMonth(): CarbonImmutable
@@ -88,6 +127,40 @@ class Calendar extends Component
     }
 
     /**
+     * Free days in the visible month, as a Y-m-d => true lookup.
+     *
+     * @return array<string, bool>
+     */
+    #[Computed]
+    public function freeDays(): array
+    {
+        $month = $this->visibleMonth();
+
+        return $this->user()->availabilities()
+            ->whereDate('date', '>=', $month->toDateString())
+            ->whereDate('date', '<=', $month->endOfMonth()->toDateString())
+            ->pluck('date')
+            ->mapWithKeys(fn (CarbonImmutable $date) => [$date->format('Y-m-d') => true])
+            ->all();
+    }
+
+    /**
+     * The next few free days from today, for the side panel.
+     *
+     * @return SupportCollection<int, CarbonImmutable>
+     */
+    #[Computed]
+    public function upcomingFreeDays(): SupportCollection
+    {
+        return $this->user()->availabilities()->upcoming()->limit(6)->pluck('date');
+    }
+
+    public function canChange(CarbonImmutable $day): bool
+    {
+        return app(UpdateAvailability::class)->canChange($day);
+    }
+
+    /**
      * @return Collection<int, Event>
      */
     #[Computed]
@@ -103,12 +176,15 @@ class Calendar extends Component
      */
     private function calendarEvents(): Builder
     {
-        /** @var User $user */
-        $user = Auth::user();
-
         return Event::query()
-            ->whereBelongsTo($user, 'owner')
+            ->whereBelongsTo($this->user(), 'owner')
             ->where('status', '!=', EventStatus::Cancelled)
             ->orderBy('starts_at');
+    }
+
+    private function user(): User
+    {
+        /** @var User */
+        return Auth::user();
     }
 }

@@ -2,9 +2,12 @@
 
 namespace Database\Seeders;
 
+use App\Actions\UpdateAvailability;
 use App\Enums\EventCategory;
 use App\Enums\EventStatus;
 use App\Models\User;
+use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -32,6 +35,31 @@ class DatabaseSeeder extends Seeder
         $organiser->events()->create($this->event(
             'Summer Sounds Festival', EventCategory::Festival, 'Two stages, twelve acts, one long afternoon.', 'Green Point Park, Cape Town', 35, '12:00', 250,
         ));
+
+        // Free days on upcoming weekends, so the calendar (and searching who is free) has something to show.
+        $availability = app(UpdateAvailability::class);
+        $availability->markFree($venue, $this->upcomingWeekendDays(4, [CarbonInterface::FRIDAY, CarbonInterface::SATURDAY]));
+        $availability->markFree($band, $this->upcomingWeekendDays(3, [CarbonInterface::FRIDAY, CarbonInterface::SATURDAY, CarbonInterface::SUNDAY]));
+        $availability->markFree($organiser, $this->upcomingWeekendDays(2, [CarbonInterface::SATURDAY]));
+    }
+
+    /**
+     * The given weekdays over the next few weeks, starting tomorrow.
+     *
+     * @param  list<int>  $weekdays  Carbon day-of-week numbers.
+     * @return list<CarbonImmutable>
+     */
+    private function upcomingWeekendDays(int $weeks, array $weekdays): array
+    {
+        $days = [];
+
+        for ($day = CarbonImmutable::tomorrow(); $day->lte(CarbonImmutable::tomorrow()->addWeeks($weeks)); $day = $day->addDay()) {
+            if (in_array($day->dayOfWeek, $weekdays, true)) {
+                $days[] = $day;
+            }
+        }
+
+        return $days;
     }
 
     /**

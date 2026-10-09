@@ -5,6 +5,7 @@
     $month = $this->visibleMonth();
     $todayKey = now()->format('Y-m-d');
     $eventsByDay = $this->eventsByDay;
+    $freeDays = $this->freeDays;
 @endphp
 
 <div class="mx-auto flex w-full max-w-6xl flex-col gap-5 lg:flex-row lg:items-start">
@@ -19,15 +20,46 @@
                 @endunless
             </div>
 
-            <flux:button
-                variant="primary"
-                icon="plus"
-                :href="route('events.create', ['date' => $month->isSameMonth(now()) ? $todayKey : $month->format('Y-m-d')])"
-                wire:navigate
-            >
-                {{ __('Add Event') }}
-            </flux:button>
+            <div class="flex flex-wrap gap-2">
+                <flux:button
+                    :variant="$markingAvailability ? 'filled' : 'outline'"
+                    icon="{{ $markingAvailability ? 'check' : 'hand-raised' }}"
+                    wire:click="$toggle('markingAvailability')"
+                    aria-pressed="{{ $markingAvailability ? 'true' : 'false' }}"
+                    data-test="mark-availability-button"
+                >
+                    {{ $markingAvailability ? __('Done') : __('Mark Availability') }}
+                </flux:button>
+
+                <flux:button
+                    variant="primary"
+                    icon="plus"
+                    :href="route('events.create', ['date' => $month->isSameMonth(now()) ? $todayKey : $month->format('Y-m-d')])"
+                    wire:navigate
+                >
+                    {{ __('Add Event') }}
+                </flux:button>
+            </div>
         </div>
+
+        @if ($markingAvailability)
+            <div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 dark:border-emerald-900 dark:bg-emerald-950/40">
+                <p class="text-sm text-emerald-900 dark:text-emerald-200">
+                    {{ __('Click the days you are free for a gig. Click again to clear a day.') }}
+                </p>
+                <div class="flex gap-2">
+                    <flux:button size="sm" wire:click="markWeekends">{{ __('Mark all weekends') }}</flux:button>
+                    <flux:button
+                        size="sm"
+                        variant="ghost"
+                        wire:click="clearMonth"
+                        wire:confirm="{{ __('Clear every free day in :month?', ['month' => $month->format('F')]) }}"
+                    >
+                        {{ __('Clear month') }}
+                    </flux:button>
+                </div>
+            </div>
+        @endif
 
         <div class="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
             <div class="grid grid-cols-7 border-b border-zinc-200 bg-brand-tertiary/15 dark:border-zinc-700 dark:bg-zinc-800">
@@ -39,16 +71,42 @@
             @foreach ($this->weeks as $week)
                 <div class="grid grid-cols-7">
                     @foreach ($week as $day)
-                        <div class="min-h-24 border-e border-b border-zinc-200 p-1.5 last:border-e-0 sm:p-2 dark:border-zinc-700">
-                            @if ($day)
-                                @php $key = $day->format('Y-m-d'); @endphp
+                        @php
+                            $key = $day?->format('Y-m-d');
+                            $isFree = $day && isset($freeDays[$key]);
+                            $isToggleable = $day && $markingAvailability && $this->canChange($day);
+                        @endphp
 
+                        <div
+                            @if ($isToggleable)
+                                role="button"
+                                tabindex="0"
+                                wire:click="toggleDay('{{ $key }}')"
+                                wire:keydown.enter="toggleDay('{{ $key }}')"
+                                aria-pressed="{{ $isFree ? 'true' : 'false' }}"
+                                aria-label="{{ $day->format('j F') }}: {{ $isFree ? __('free, click to clear') : __('click to mark free') }}"
+                                wire:key="day-{{ $key }}"
+                            @endif
+                            @class([
+                                'min-h-24 border-e border-b border-zinc-200 p-1.5 last:border-e-0 sm:p-2 dark:border-zinc-700',
+                                'bg-emerald-50 dark:bg-emerald-950/40' => $isFree,
+                                'cursor-pointer hover:bg-emerald-100/70 dark:hover:bg-emerald-900/40' => $isToggleable,
+                                'opacity-50' => $day && $markingAvailability && ! $isToggleable,
+                            ])
+                        >
+                            @if ($day)
                                 <div class="flex flex-col gap-1">
-                                    <span @class([
-                                        'grid size-6 place-items-center rounded-full text-xs font-semibold',
-                                        'bg-brand text-white' => $key === $todayKey,
-                                        'text-zinc-900 dark:text-white' => $key !== $todayKey,
-                                    ])>{{ $day->day }}</span>
+                                    <div class="flex items-center justify-between gap-1">
+                                        <span @class([
+                                            'grid size-6 place-items-center rounded-full text-xs font-semibold',
+                                            'bg-brand text-white' => $key === $todayKey,
+                                            'text-zinc-900 dark:text-white' => $key !== $todayKey,
+                                        ])>{{ $day->day }}</span>
+
+                                        @if ($isFree)
+                                            <span class="hidden truncate text-[10px] font-bold tracking-wide text-emerald-700 uppercase sm:inline dark:text-emerald-300">{{ __('Free') }}</span>
+                                        @endif
+                                    </div>
 
                                     @foreach ($eventsByDay->get($key, []) as $event)
                                         @php [$from] = $event->category->accent(); @endphp
@@ -59,6 +117,7 @@
                                             @class([
                                                 'truncate rounded-md px-1.5 py-0.5 text-[11px] font-semibold hover:no-underline',
                                                 'border border-dashed opacity-70' => $event->status === EventStatus::Draft,
+                                                'pointer-events-none' => $markingAvailability,
                                             ])
                                             style="background-color: color-mix(in srgb, {{ $from }} 15%, transparent); color: {{ $from }}; border-color: {{ $from }}"
                                         >
@@ -75,6 +134,23 @@
     </div>
 
     <div class="flex w-full flex-col gap-5 lg:w-80 lg:shrink-0">
+        <x-profile-section :title="__('Your Availability')">
+            @forelse ($this->upcomingFreeDays as $date)
+                <div class="flex items-center gap-2.5 text-zinc-900 dark:text-white">
+                    <span class="size-2.5 shrink-0 rounded-full bg-emerald-500"></span>
+                    {{ $date->format('D j M') }}
+                </div>
+            @empty
+                <flux:text>{{ __('You have not marked any free days yet. Venues, bands and organisers will be able to find you on the days you are free.') }}</flux:text>
+            @endforelse
+
+            @unless ($markingAvailability)
+                <div>
+                    <flux:link wire:click="$set('markingAvailability', true)" class="cursor-pointer text-sm">{{ __('Mark free days') }}</flux:link>
+                </div>
+            @endunless
+        </x-profile-section>
+
         <x-profile-section :title="__('Today\'s Events')">
             @forelse ($this->todaysEvents as $event)
                 @php [$from] = $event->category->accent(); @endphp
@@ -92,7 +168,11 @@
             @endforelse
         </x-profile-section>
 
-        <x-profile-section :title="__('Event Types')">
+        <x-profile-section :title="__('Key')">
+            <div class="flex items-center gap-2.5 text-zinc-900 dark:text-white">
+                <span class="size-2.5 shrink-0 rounded-full bg-emerald-500"></span>
+                {{ __('Free for a gig') }}
+            </div>
             @foreach (EventCategory::cases() as $category)
                 <div class="flex items-center gap-2.5 text-zinc-900 dark:text-white">
                     <span class="size-2.5 shrink-0 rounded-full" style="background-color: {{ $category->accent()[0] }}"></span>
