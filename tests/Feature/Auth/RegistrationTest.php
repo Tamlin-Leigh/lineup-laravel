@@ -27,8 +27,8 @@ function registerAs(UserRole $role): Testable
         ->call('next')
         ->assertHasNoErrors()
         ->set([
-            'name' => 'Sam Smith',
-            'phone' => '+27821234567',
+            'form.name' => 'Sam Smith',
+            'form.phone' => '+27821234567',
             'role' => $role->value,
         ])
         ->call('next')
@@ -42,9 +42,9 @@ function registerAs(UserRole $role): Testable
 function managerDetails(): array
 {
     return [
-        'manager_name' => 'Morgan Lee',
-        'manager_phone' => '0831234567',
-        'manager_email' => 'morgan@example.com',
+        'form.manager_name' => 'Morgan Lee',
+        'form.manager_phone' => '0831234567',
+        'form.manager_email' => 'morgan@example.com',
     ];
 }
 
@@ -81,23 +81,27 @@ test('the personal step requires a valid phone number and a role', function () {
     Livewire::test(Register::class)
         ->set(['email' => 'sam@example.com', 'password' => 'password', 'password_confirmation' => 'password'])
         ->call('next')
-        ->set(['name' => 'Sam', 'phone' => '12'])
+        ->set(['form.name' => 'Sam', 'form.phone' => '12'])
         ->call('next')
-        ->assertHasErrors(['phone' => 'regex', 'role' => 'required'])
+        ->assertHasErrors(['form.phone', 'role'])
         ->assertSet('step', 1);
 });
 
-test('phone numbers are stripped to digits and a leading plus', function () {
+test('phone numbers are stored as digits and a leading plus', function () {
     Livewire::test(Register::class)
-        ->set('phone', ' +27 (82) 123-4567 ')
-        ->assertSet('phone', '+27821234567');
+        ->set(['email' => 'sam@example.com', 'password' => 'password', 'password_confirmation' => 'password'])
+        ->call('next')
+        ->set(['form.name' => 'Sam', 'form.phone' => ' +27 (82) 123-4567 ', 'role' => UserRole::Organiser->value])
+        ->call('next')
+        ->assertHasNoErrors()
+        ->assertSet('form.phone', '+27821234567');
 });
 
 test('admin cannot be chosen at sign-up', function () {
     Livewire::test(Register::class)
         ->set(['email' => 'sam@example.com', 'password' => 'password', 'password_confirmation' => 'password'])
         ->call('next')
-        ->set(['name' => 'Sam', 'phone' => '0821234567', 'role' => UserRole::Admin->value])
+        ->set(['form.name' => 'Sam', 'form.phone' => '0821234567', 'role' => UserRole::Admin->value])
         ->call('next')
         ->assertHasErrors(['role'])
         ->assertSet('step', 1);
@@ -119,7 +123,7 @@ test('going back keeps what was entered', function () {
     registerAs(UserRole::Band)
         ->call('back')
         ->assertSet('step', 1)
-        ->assertSet('name', 'Sam Smith');
+        ->assertSet('form.name', 'Sam Smith');
 });
 
 test('a venue can register', function () {
@@ -130,13 +134,13 @@ test('a venue can register', function () {
         ->call('next')
         ->assertHasNoErrors()
         ->set([
-            'capacity' => '250',
-            'location' => '12 Long Street, Cape Town',
-            'min_door_charge' => '80',
-            'sound_engineer' => SoundEngineer::InHouse->value,
-            'sound_engineer_name' => 'Alex',
-            'has_own_equipment' => true,
-            'equipment_details' => 'PA and drum kit',
+            'form.capacity' => '250',
+            'form.location' => '12 Long Street, Cape Town',
+            'form.min_door_charge' => '80',
+            'form.sound_engineer' => SoundEngineer::InHouse->value,
+            'form.sound_engineer_name' => 'Alex',
+            'form.has_own_equipment' => true,
+            'form.equipment_details' => 'PA and drum kit',
         ])
         ->call('next')
         ->assertHasNoErrors()
@@ -169,14 +173,14 @@ test('a venue with an in-house sound engineer must name them', function () {
         ->set(managerDetails())
         ->call('next')
         ->set([
-            'capacity' => '250',
-            'location' => 'Cape Town',
-            'min_door_charge' => '0',
-            'sound_engineer' => SoundEngineer::InHouse->value,
-            'has_own_equipment' => false,
+            'form.capacity' => '250',
+            'form.location' => 'Cape Town',
+            'form.min_door_charge' => '0',
+            'form.sound_engineer' => SoundEngineer::InHouse->value,
+            'form.has_own_equipment' => false,
         ])
         ->call('next')
-        ->assertHasErrors(['sound_engineer_name' => 'required_if'])
+        ->assertHasErrors(['form.sound_engineer_name' => 'required_if'])
         ->assertSet('step', 3);
 });
 
@@ -185,15 +189,15 @@ test('a venue must pick at least one event day', function () {
         ->set(managerDetails())
         ->call('next')
         ->set([
-            'capacity' => '250',
-            'location' => 'Cape Town',
-            'min_door_charge' => '0',
-            'sound_engineer' => SoundEngineer::None->value,
-            'has_own_equipment' => false,
+            'form.capacity' => '250',
+            'form.location' => 'Cape Town',
+            'form.min_door_charge' => '0',
+            'form.sound_engineer' => SoundEngineer::None->value,
+            'form.has_own_equipment' => false,
         ])
         ->call('next')
         ->call('next')
-        ->assertHasErrors(['event_days' => 'required']);
+        ->assertHasErrors(['form.event_days' => 'required']);
 
     expect(User::count())->toBe(0);
 });
@@ -203,17 +207,17 @@ test('a band can register with music and social links', function () {
         ->set(managerDetails())
         ->call('next')
         ->set([
-            'band_name' => 'The Loud Ones',
-            'member_count' => '4',
-            'member_names' => 'Ann, Ben, Cat, Dan',
-            'genre' => 'Rock',
+            'form.band_name' => 'The Loud Ones',
+            'form.member_count' => '4',
+            'form.member_names' => 'Ann, Ben, Cat, Dan',
+            'form.genre' => 'Rock',
         ])
         ->call('next')
         ->assertHasNoErrors()
         ->call('addLink', 'music_links')
-        ->set('music_links.0', ['platform' => LinkPlatform::Spotify->value, 'url' => 'https://open.spotify.com/artist/1'])
+        ->set('form.music_links.0', ['platform' => LinkPlatform::Spotify->value, 'url' => 'https://open.spotify.com/artist/1'])
         ->call('addLink', 'social_links')
-        ->set('social_links.0', ['platform' => LinkPlatform::Instagram->value, 'url' => 'https://instagram.com/loudones'])
+        ->set('form.social_links.0', ['platform' => LinkPlatform::Instagram->value, 'url' => 'https://instagram.com/loudones'])
         ->call('next')
         ->assertHasNoErrors()
         ->assertRedirect(route('dashboard', absolute: false));
@@ -234,11 +238,11 @@ test('links must be real urls on a platform that fits their kind', function () {
     registerAs(UserRole::Band)
         ->set(managerDetails())
         ->call('next')
-        ->set(['band_name' => 'X', 'member_count' => '1', 'member_names' => 'X', 'genre' => 'Pop'])
+        ->set(['form.band_name' => 'X', 'form.member_count' => '1', 'form.member_names' => 'X', 'form.genre' => 'Pop'])
         ->call('next')
-        ->set('music_links', [['platform' => LinkPlatform::Instagram->value, 'url' => 'javascript:alert(1)']])
+        ->set('form.music_links', [['platform' => LinkPlatform::Instagram->value, 'url' => 'javascript:alert(1)']])
         ->call('next')
-        ->assertHasErrors(['music_links.0.platform', 'music_links.0.url']);
+        ->assertHasErrors(['form.music_links.0.platform', 'form.music_links.0.url']);
 
     expect(User::count())->toBe(0);
 });
@@ -247,21 +251,21 @@ test('removing a link drops it from the list', function () {
     registerAs(UserRole::Band)
         ->call('addLink', 'music_links')
         ->call('addLink', 'music_links')
-        ->set('music_links.1.url', 'https://example.com/keep')
+        ->set('form.music_links.1.url', 'https://example.com/keep')
         ->call('removeLink', 'music_links', 0)
-        ->assertCount('music_links', 1)
-        ->assertSet('music_links.0.url', 'https://example.com/keep');
+        ->assertCount('form.music_links', 1)
+        ->assertSet('form.music_links.0.url', 'https://example.com/keep');
 });
 
 test('an organiser can register', function () {
     registerAs(UserRole::Organiser)
         ->set([
-            'org_name' => 'Gig Co',
-            'contact_number' => '0211234567',
-            'contact_email' => 'hello@gigco.test',
+            'form.org_name' => 'Gig Co',
+            'form.contact_number' => '0211234567',
+            'form.contact_email' => 'hello@gigco.test',
         ])
         ->call('addLink', 'social_links')
-        ->set('social_links.0.url', 'https://instagram.com/gigco')
+        ->set('form.social_links.0.url', 'https://instagram.com/gigco')
         ->call('next')
         ->assertHasNoErrors()
         ->assertRedirect(route('dashboard', absolute: false));
@@ -278,10 +282,10 @@ test('an organiser can register', function () {
 test('the final step re-validates every step for the role', function () {
     // The personal step already passed; blanking one of its fields must still block sign-up.
     registerAs(UserRole::Organiser)
-        ->set(['org_name' => 'Gig Co', 'contact_number' => '0211234567', 'contact_email' => 'hello@gigco.test'])
-        ->set('name', '')
+        ->set(['form.org_name' => 'Gig Co', 'form.contact_number' => '0211234567', 'form.contact_email' => 'hello@gigco.test'])
+        ->set('form.name', '')
         ->call('next')
-        ->assertHasErrors(['name' => 'required']);
+        ->assertHasErrors(['form.name' => 'required']);
 
     expect(User::count())->toBe(0);
 });

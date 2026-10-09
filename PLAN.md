@@ -31,7 +31,7 @@ lived in Firestore security rules and client-side services into a proper server-
 
 - [x] **0. Scaffold**: Laravel 13, Livewire starter kit (class components), Pest, Larastan (level 7), Pint, CI, Sail (MySQL, Redis, Mailpit), domain enums
 - [x] **1. Registration**: multi-step Livewire sign-up with a branch per role and per-step validation; `RegisterUser` action; feature tests per role
-- [ ] **2. Profiles**: profile editor per role, avatar upload, link repeater, `UserPolicy`
+- [x] **2. Profiles**: profile editor per role, avatar upload, link repeater, `UserPolicy`
 - [ ] **3. Dashboards**: dashboard per role behind role middleware
 - [ ] **4. Events & calendar**: CRUD, month calendar view, `upcoming()` / `past()` scopes, `EventPolicy`
 - [ ] **5. Booking workflow**: band requests a slot, venue accepts or declines; status transitions guarded by `BookingStatus::canTransitionTo()`; domain events, queued mail + database notifications

@@ -11,8 +11,8 @@
     aria-pressed="{{ $selected ? 'true' : 'false' }}"
     {{ $attributes->class([
         'w-full rounded-lg border p-4 text-left transition',
-        'border-brand bg-brand/8 ring-2 ring-brand' => $selected,
-        'border-zinc-300 bg-white hover:border-brand-secondary' => ! $selected,
+        'border-brand bg-brand/8 ring-2 ring-brand dark:border-brand-secondary dark:bg-brand/40 dark:ring-brand-secondary' => $selected,
+        'border-zinc-300 bg-white hover:border-brand-secondary dark:border-zinc-600 dark:bg-zinc-800' => ! $selected,
     ]) }}
 >
     <span class="flex items-center gap-3">
@@ -31,9 +31,9 @@
         @endif
 
         <span>
-            <span class="block font-bold text-brand-ink">{{ $label }}</span>
+            <span class="block font-bold text-brand-ink dark:text-white">{{ $label }}</span>
             @if ($description)
-                <span class="mt-0.5 block text-sm text-brand-muted">{{ $description }}</span>
+                <span class="mt-0.5 block text-sm text-brand-muted dark:text-zinc-400">{{ $description }}</span>
             @endif
         </span>
     </span>
