@@ -19,8 +19,8 @@ Requires Docker Desktop. The host ports are set in `.env` (`APP_PORT=8080`, `FOR
 cp .env.example .env
 composer install
 docker compose up -d                                     # app, mysql, redis, mailpit, phpmyadmin
-docker compose exec laravel.test php artisan key:generate
-docker compose exec laravel.test php artisan migrate --seed
+docker compose exec -u sail laravel.test php artisan key:generate
+docker compose exec -u sail laravel.test php artisan migrate --seed
 npm install && npm run dev
 ```
 
@@ -35,20 +35,41 @@ The seeder creates one demo account per role, all with the password `password`:
 ## Everyday commands
 
 From **Git Bash / WSL** you can use the Sail wrapper, `./vendor/bin/sail <cmd>`.
-From **PowerShell** use `docker compose exec laravel.test <cmd>`. Both run inside the app container.
+From **PowerShell** use `docker compose exec -u sail laravel.test <cmd>`. Both run inside the app container as the
+`sail` user, the same user the web server runs as. Leave out `-u sail` and the command runs as `root`, and any
+files it writes (compiled views, logs, cache) can no longer be updated by the app.
 
 | Task                         | Sail                                    | PowerShell / plain Docker                                         |
 |------------------------------|-----------------------------------------|-------------------------------------------------------------------|
 | Start / stop containers      | `sail up -d` / `sail stop`              | `docker compose up -d` / `docker compose stop`                    |
-| Run migrations               | `sail artisan migrate`                  | `docker compose exec laravel.test php artisan migrate`            |
-| Roll back the last batch     | `sail artisan migrate:rollback`         | `docker compose exec laravel.test php artisan migrate:rollback`   |
-| Rebuild DB from scratch      | `sail artisan migrate:fresh --seed`     | `docker compose exec laravel.test php artisan migrate:fresh --seed` |
-| Migration status             | `sail artisan migrate:status`           | `docker compose exec laravel.test php artisan migrate:status`     |
-| New migration                | `sail artisan make:migration create_x_table` | `docker compose exec laravel.test php artisan make:migration create_x_table` |
-| Tinker                       | `sail tinker`                           | `docker compose exec laravel.test php artisan tinker`             |
-| Queue worker                 | `sail artisan queue:work`               | `docker compose exec laravel.test php artisan queue:work`         |
+| Run migrations               | `sail artisan migrate`                  | `docker compose exec -u sail laravel.test php artisan migrate`            |
+| Roll back the last batch     | `sail artisan migrate:rollback`         | `docker compose exec -u sail laravel.test php artisan migrate:rollback`   |
+| Rebuild DB from scratch      | `sail artisan migrate:fresh --seed`     | `docker compose exec -u sail laravel.test php artisan migrate:fresh --seed` |
+| Migration status             | `sail artisan migrate:status`           | `docker compose exec -u sail laravel.test php artisan migrate:status`     |
+| New migration                | `sail artisan make:migration create_x_table` | `docker compose exec -u sail laravel.test php artisan make:migration create_x_table` |
+| Tinker                       | `sail tinker`                           | `docker compose exec -u sail laravel.test php artisan tinker`             |
+| Queue worker                 | `sail artisan queue:work`               | `docker compose exec -u sail laravel.test php artisan queue:work`         |
 | MySQL shell                  | `sail mysql`                            | `docker compose exec mysql mysql -u sail -ppassword bandlink`     |
-| Tests                        | `sail test`                             | `docker compose exec laravel.test php artisan test`               |
+| Tests                        | `sail test`                             | `docker compose exec -u sail laravel.test php artisan test`               |
 
 Tests run against in-memory SQLite (see `phpunit.xml`), so `composer test` also works without Docker
 and covers Pint, Larastan and Pest in one go.
+
+## Troubleshooting
+
+**`touch(): Utime failed: Operation not permitted`** (or other permission errors under `storage/`): a command
+was run in the container as `root`, so it left root-owned files the app can't update. Hand them back to `sail`
+and clear the compiled views:
+
+```bash
+docker compose exec laravel.test chown -R sail:sail storage bootstrap/cache
+docker compose exec -u sail laravel.test php artisan view:clear
+```
+
+**`SQLSTATE[HY000] [2002] ... Host: mysql`**: `php artisan` was run on Windows instead of in the container (or the
+app was opened on `php artisan serve`'s port 8000). Use the container commands above and http://localhost:8080.
+
+**Pages are slow on Windows (a second or more per click)**: Docker reads the project from the Windows drive
+(`C:\...`) very slowly. `docker/php/opcache.ini` turns on PHP's code cache for the dev server and only re-checks
+files every 2 seconds, which helps with quick bursts of clicks. For real speed, keep the project inside WSL2
+(e.g. `\wsl$\Ubuntu\home\<you>\bandlink-laravel`) and run Docker from there, as the Laravel Sail docs recommend.

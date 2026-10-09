@@ -33,7 +33,8 @@
                 </div>
             </main>
 
-            <aside class="relative hidden bg-[url('/images/SignUpBanner.jpg')] bg-cover bg-center md:block">
+            {{-- Inline URL from the app: a Tailwind bg-[url()] resolves against the Vite dev server in development, which doesn't serve /public. --}}
+            <aside class="relative hidden bg-cover bg-center md:block" style="background-image: url('{{ asset('images/SignUpBanner.jpg') }}')">
                 <div class="absolute inset-0 bg-[rgba(10,22,22,0.55)] backdrop-blur-md"></div>
                 <div class="absolute inset-0 flex flex-col items-center justify-center px-10 text-center text-white">
                     <p class="text-5xl font-extrabold tracking-[-1px]">{{ config('app.name', 'BandLink') }}</p>

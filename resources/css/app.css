@@ -44,6 +44,15 @@
 }
 
 @layer base {
+    /* No blinking text cursor when clicking ordinary text (carried over from the prototype);
+       inputs, text areas and editable content keep theirs. */
+    :where(*:not(input, textarea, [contenteditable="true"])) {
+        caret-color: transparent;
+    }
+
+    :where(input, textarea, [contenteditable="true"]) {
+        caret-color: auto;
+    }
 
     *,
     ::after,

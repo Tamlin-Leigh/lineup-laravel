@@ -41,7 +41,8 @@ trait ProfileValidationRules
         return [
             'required',
             'string',
-            'email',
+            // rfc + filter: also rejects addresses without a proper domain, such as "name@gmail".
+            'email:rfc,filter',
             'max:255',
             $userId === null
                 ? Rule::unique(User::class)
