@@ -2,9 +2,11 @@
 
 use App\Livewire\Auth\Register;
 use App\Livewire\Profile\EditProfile;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'welcome')->name('home');
+// Like the prototype, the root has no page of its own: guests log in, everyone else goes to their dashboard.
+Route::get('/', fn () => redirect()->route(Auth::check() ? 'dashboard' : 'login'))->name('home');
 
 // Replaces Fortify's single-page registration (disabled in config/fortify.php).
 Route::livewire('register', Register::class)->middleware('guest')->name('register');

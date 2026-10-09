@@ -1,4 +1,7 @@
-{{-- Split sign-up layout matching the React prototype: form on the left, banner on the right. Light only. --}}
+{{--
+    Split layout for every guest page (log in, sign up, password reset, verification), matching the
+    React prototype: a card on the left, banner on the right. Light only, like the prototype.
+--}}
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
@@ -20,8 +23,13 @@
     <body class="min-h-screen bg-white text-brand-ink antialiased">
         <div class="grid min-h-svh md:grid-cols-2">
             <main class="flex items-center justify-center bg-brand-tertiary/25 px-4 py-8">
-                <div class="w-full max-w-md">
-                    {{ $slot }}
+                <div class="flex w-full max-w-md flex-col gap-6">
+                    {{-- The banner (and its wordmark) is hidden on small screens. --}}
+                    <p class="text-center text-3xl font-extrabold tracking-[-0.6px] text-brand md:hidden">{{ config('app.name', 'BandLink') }}</p>
+
+                    <div class="rounded-2xl border border-zinc-200 bg-white p-7 shadow-[0_20px_55px_rgba(0,0,0,0.08)]">
+                        {{ $slot }}
+                    </div>
                 </div>
             </main>
 

@@ -6,7 +6,7 @@
     $isLastStep = $this->isLastStep();
 @endphp
 
-<div class="rounded-2xl border border-zinc-200 bg-white p-7 shadow-[0_20px_55px_rgba(0,0,0,0.08)]">
+<div>
     {{-- Header --}}
     <div class="mb-4 flex items-center gap-3">
         <button
