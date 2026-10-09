@@ -13,12 +13,12 @@ A booking platform connecting **bands**, **venues** and **event organisers**, bu
 
 ## Getting started (Docker)
 
-Requires Docker Desktop. The host ports are set in `.env` (`APP_PORT=8080`, `FORWARD_DB_PORT=3307`).
+Requires Docker Desktop. The host ports are set in `.env` (`APP_PORT=8080`, `FORWARD_DB_PORT=3307`, `FORWARD_PHPMYADMIN_PORT=8081`).
 
 ```bash
 cp .env.example .env
 composer install
-docker compose up -d                                     # app, mysql, redis, mailpit
+docker compose up -d                                     # app, mysql, redis, mailpit, phpmyadmin
 docker compose exec laravel.test php artisan key:generate
 docker compose exec laravel.test php artisan migrate --seed
 npm install && npm run dev
@@ -26,6 +26,7 @@ npm install && npm run dev
 
 - App: http://localhost:8080
 - Mailpit (caught emails): http://localhost:8025
+- phpMyAdmin: http://localhost:8081 (logs in as the `sail` user; only reachable from this machine)
 - MySQL from a GUI client: `127.0.0.1:3307`, user `sail`, password `password`, database `bandlink`
 
 The seeder creates one demo account per role, all with the password `password`:

@@ -43,6 +43,7 @@ others filter by role and date to find a match, and "Contact now" starts the con
 - [x] **4. Dashboards**: dashboard per role, `role` middleware, admin overview, BandLink app shell (band event stats are wired up in phase 5)
 - [x] **5. Events & calendar**: CRUD, month calendar view, `upcoming()` / `past()` scopes, `EventPolicy`; open to venues, bands and organisers (the prototype limited it to bands); app timezone defaults to Africa/Johannesburg
 - [x] **6. Availability**: venues, bands and organisers mark whole days they are free on the calendar ("mark all weekends" = Fri-Sun, "clear month"); today up to two years ahead; shown with their events and on every dashboard
-- [ ] **7. Discover**: filter every role by available dates (plus location / genre); read-only public profiles; calendar overlay of who is free each day
-- [ ] **8. Contact now**: modal with a short message sends the recipient an email with the sender's profile and dates, Reply-To the sender (recipient's address stays private); rate limited and logged
-- [ ] **9. Polish**: README screenshots, demo data with availability, deployment
+- [x] **7. phpMyAdmin**: Sail service on http://localhost:8081 for browsing the local database (bound to 127.0.0.1, auto-login as `sail`)
+- [ ] **8. Discover**: filter every role by available dates (plus location / genre); read-only public profiles; calendar overlay of who is free each day
+- [ ] **9. Contact now**: modal with a short message sends the recipient an email with the sender's profile and dates, Reply-To the sender (recipient's address stays private); rate limited and logged
+- [ ] **10. Polish**: README screenshots, demo data with availability, deployment
