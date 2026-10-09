@@ -118,11 +118,7 @@ class EditProfile extends Component
      */
     public function displayName(): string
     {
-        return match ($this->user->role) {
-            UserRole::Band => $this->user->bandProfile->band_name ?? $this->user->name,
-            UserRole::Organiser => $this->user->organiserProfile->org_name ?? $this->user->name,
-            default => $this->user->name,
-        };
+        return $this->user->displayName();
     }
 
     /**
