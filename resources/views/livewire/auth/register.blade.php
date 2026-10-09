@@ -53,7 +53,7 @@
         @endforeach
     </ol>
 
-    <form wire:submit="next" wire:key="step-{{ $current }}" class="flex max-h-[60vh] flex-col gap-4 overflow-y-auto px-1 pb-1">
+    <form wire:submit="next" wire:key="step-{{ $current }}" class="flex max-h-[60vh] flex-col gap-4 overflow-y-auto px-1 pb-1 *:shrink-0">
         @switch($current)
             @case('account')
                 <flux:text>{{ __('Enter your email and create a password') }}</flux:text>
@@ -90,12 +90,7 @@
                 <div class="flex flex-col gap-2" role="group" aria-labelledby="role-label">
                     <flux:label id="role-label">{{ __('I am a...') }}</flux:label>
                     @foreach (UserRole::registrable() as $option)
-                        <x-choice-card
-                            wire:click="$set('role', '{{ $option->value }}')"
-                            :label="$option->label()"
-                            :description="$option->description()"
-                            :selected="$role === $option->value"
-                        />
+                        <x-choice-card model="role" :value="$option->value" :label="$option->label()" :description="$option->description()" />
                     @endforeach
                     <flux:error name="role" />
                 </div>
@@ -145,9 +140,9 @@
                 @break
         @endswitch
 
-        <flux:button type="submit" variant="primary" class="mt-2 w-full" data-test="register-next-button">
+        <x-auth-button class="mt-2" data-test="register-next-button">
             {{ $isLastStep ? __('Create Account') : __('Continue') }}
-        </flux:button>
+        </x-auth-button>
 
         @if ($current === 'account')
             <p class="text-center text-sm text-brand-muted">

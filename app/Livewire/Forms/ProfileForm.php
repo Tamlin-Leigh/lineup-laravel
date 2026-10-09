@@ -157,25 +157,15 @@ class ProfileForm extends Form
      */
     public function validateSections(array $sections): array
     {
+        // Remove formatting people commonly type (spaces, dashes, dots, brackets) but keep anything
+        // else, such as letters, so the format check rejects it instead of silently dropping it.
         foreach (self::PHONE_FIELDS as $field) {
-            $value = trim($this->{$field});
-            $this->{$field} = (str_starts_with($value, '+') ? '+' : '').(preg_replace('/\D/', '', $value) ?? '');
+            $this->{$field} = preg_replace('/[\s().-]/', '', $this->{$field}) ?? '';
         }
 
         $rules = array_merge(...array_map(fn (string $section): array => $this->rulesFor($section), $sections));
 
         return $this->validate($rules);
-    }
-
-    public function toggleEventDay(string $day): void
-    {
-        if (EventDay::tryFrom($day) === null) {
-            return;
-        }
-
-        $this->event_days = in_array($day, $this->event_days, true)
-            ? array_values(array_diff($this->event_days, [$day]))
-            : [...$this->event_days, $day];
     }
 
     public function addLink(string $field): void
@@ -208,7 +198,8 @@ class ProfileForm extends Form
     public function rulesFor(string $section): array
     {
         $phone = ['required', 'string', 'regex:'.self::PHONE_PATTERN];
-        $email = ['required', 'string', 'email', 'max:255'];
+        // rfc + filter: also rejects addresses without a proper domain, such as "name@gmail".
+        $email = ['required', 'string', 'email:rfc,filter', 'max:255'];
 
         return match ($section) {
             'personal' => [
@@ -283,7 +274,7 @@ class ProfileForm extends Form
      */
     protected function messages(): array
     {
-        $phone = __('Enter a valid phone number: 7 to 15 digits, optionally starting with +.');
+        $phone = __('Enter a valid phone number using digits only (7 to 15), optionally starting with +.');
 
         return [
             'phone.regex' => $phone,
