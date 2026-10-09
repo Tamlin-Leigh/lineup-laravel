@@ -21,6 +21,10 @@
                             {{ __('Dashboard') }}
                         </flux:sidebar.item>
 
+                        <flux:sidebar.item icon="magnifying-glass" :href="route('discover')" :current="request()->routeIs('discover', 'profiles.show')" wire:navigate>
+                            {{ __('Discover') }}
+                        </flux:sidebar.item>
+
                         <flux:sidebar.item icon="calendar-days" :href="route('calendar')" :current="request()->routeIs('calendar')" wire:navigate>
                             {{ __('Calendar') }}
                         </flux:sidebar.item>

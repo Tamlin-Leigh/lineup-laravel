@@ -2,7 +2,10 @@
     <x-slot:heading>
         <span class="flex items-center justify-between">
             {{ __('Your Availability') }}
-            <flux:link :href="route('calendar')" wire:navigate class="text-xs font-semibold">{{ __('Manage') }}</flux:link>
+            <span class="flex gap-3">
+                <flux:link :href="route('discover')" wire:navigate class="text-xs font-semibold">{{ __('Find who\'s free') }}</flux:link>
+                <flux:link :href="route('calendar')" wire:navigate class="text-xs font-semibold">{{ __('Manage') }}</flux:link>
+            </span>
         </span>
     </x-slot:heading>
 

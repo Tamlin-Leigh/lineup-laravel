@@ -112,6 +112,18 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * The name others see: the band's or organisation's name where there is one.
+     */
+    public function displayName(): string
+    {
+        return match ($this->role) {
+            UserRole::Band => $this->bandProfile->band_name ?? $this->name,
+            UserRole::Organiser => $this->organiserProfile->org_name ?? $this->name,
+            default => $this->name,
+        };
+    }
+
+    /**
      * Public URL of the user's profile photo, if they have uploaded one.
      */
     public function profilePhotoUrl(): ?string
