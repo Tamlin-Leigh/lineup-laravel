@@ -33,7 +33,7 @@ lived in Firestore security rules and client-side services into a proper server-
 - [x] **1. Registration**: multi-step Livewire sign-up with a branch per role and per-step validation; `RegisterUser` action; feature tests per role
 - [x] **2. Profiles**: profile editor per role, avatar upload, link repeater, `UserPolicy`
 - [x] **3. Auth pages**: log in, password reset, verification and 2FA screens on the BandLink split layout; `/` redirects like the prototype
-- [ ] **4. Dashboards**: dashboard per role behind role middleware
+- [x] **4. Dashboards**: dashboard per role, `role` middleware, admin overview, BandLink app shell (band event stats are wired up in phase 5)
 - [ ] **5. Events & calendar**: CRUD, month calendar view, `upcoming()` / `past()` scopes, `EventPolicy`
 - [ ] **6. Booking workflow**: band requests a slot, venue accepts or declines; status transitions guarded by `BookingStatus::canTransitionTo()`; domain events, queued mail + database notifications
 - [ ] **7. Polish**: README screenshots, demo credentials, deployment
