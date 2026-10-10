@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PublicProfileController;
 use App\Livewire\Auth\Register;
+use App\Livewire\Bookings\Index as BookingIndex;
 use App\Livewire\Discover;
 use App\Livewire\Events\Calendar;
 use App\Livewire\Events\Index as EventIndex;
@@ -29,6 +30,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::livewire('events/{event}/edit', ManageEvent::class)->name('events.edit');
         Route::livewire('calendar', Calendar::class)->name('calendar');
         Route::livewire('discover', Discover::class)->name('discover');
+        Route::livewire('bookings', BookingIndex::class)->name('bookings.index');
     });
 
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {

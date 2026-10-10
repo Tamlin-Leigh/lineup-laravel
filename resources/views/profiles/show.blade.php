@@ -89,6 +89,19 @@
                     @endif
                 </x-profile-section>
 
+                <x-profile-section :title="__('Booking Terms')" data-test="booking-terms">
+                    <dl class="flex flex-col gap-2 text-zinc-900">
+                        <div class="flex justify-between gap-3">
+                            <dt class="text-zinc-500">{{ __('Booking fee') }}</dt>
+                            <dd class="font-semibold">{{ $band->booking_fee !== null ? 'R'.number_format($band->booking_fee) : __('On request') }}</dd>
+                        </div>
+                        <div class="flex justify-between gap-3">
+                            <dt class="text-zinc-500">{{ __('Door / ticket splits') }}</dt>
+                            <dd class="font-semibold">{{ $band->accepts_door_split ? __('Open to splits') : __('Not offered') }}</dd>
+                        </div>
+                    </dl>
+                </x-profile-section>
+
                 <x-profile-section :title="__('Members (:count)', ['count' => $band->member_count])">
                     <ul class="flex flex-col gap-1.5 text-zinc-900">
                         @foreach ($members as $member)
@@ -108,9 +121,8 @@
         @if ($events->isNotEmpty())
             <x-profile-section :title="__('Upcoming Events')">
                 @foreach ($events as $event)
-                    @php [$fromColour, $toColour] = $event->category->accent(); @endphp
                     <div class="flex items-center gap-3">
-                        <span class="size-10 shrink-0 rounded-lg" style="background: linear-gradient(135deg, {{ $fromColour }}, {{ $toColour }})" aria-hidden="true"></span>
+                        <x-event-date :event="$event" />
                         <div class="min-w-0 flex-1">
                             <p class="truncate font-bold text-zinc-900">{{ $event->title }}</p>
                             <p class="truncate text-xs text-zinc-500">{{ $event->location }}</p>

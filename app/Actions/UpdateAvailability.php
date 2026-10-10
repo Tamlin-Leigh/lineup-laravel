@@ -3,13 +3,15 @@
 namespace App\Actions;
 
 use App\Models\Availability;
+use App\Models\Event;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 
 /**
  * Marks days as free or busy for an account. Only today onwards can change, and no more
- * than two years ahead, so the calendar can't be filled with stale or absurd dates.
+ * than two years ahead, so the calendar can't be filled with stale or absurd dates. A day the
+ * account is hosting or booked for an event can't be marked free.
  */
 class UpdateAvailability
 {
@@ -37,13 +39,12 @@ class UpdateAvailability
             return false;
         }
 
-        $this->markFree($user, [$day]);
-
-        return true;
+        return $this->markFree($user, [$day]) > 0;
     }
 
     /**
-     * Mark several days as free, skipping any already marked or outside the allowed range.
+     * Mark several days as free, skipping any already marked, outside the allowed range, or on
+     * which the user is hosting or booked for an event.
      *
      * @param  iterable<CarbonInterface>  $days
      * @return int How many days were newly marked.
@@ -59,7 +60,38 @@ class UpdateAvailability
             }
         }
 
+        if ($rows === []) {
+            return 0;
+        }
+
+        $dates = array_keys($rows);
+        $rows = array_diff_key($rows, $this->busyDays($user, min($dates), max($dates)));
+
         return $rows === [] ? 0 : Availability::query()->insertOrIgnore(array_values($rows));
+    }
+
+    /**
+     * Days the user is hosting or booked for an event, as a Y-m-d => true lookup.
+     *
+     * @return array<string, bool>
+     */
+    public function busyDays(User $user, string $from, string $to): array
+    {
+        return Event::query()
+            ->involving($user)
+            ->whereDate('starts_at', '>=', $from)
+            ->whereDate('starts_at', '<=', $to)
+            ->pluck('starts_at')
+            ->mapWithKeys(fn (CarbonInterface $startsAt) => [$startsAt->format('Y-m-d') => true])
+            ->all();
+    }
+
+    /**
+     * Hosting (or being booked for) an event on a day means the day is no longer free.
+     */
+    public function markBusy(User $user, CarbonInterface $day): void
+    {
+        $user->availabilities()->whereDate('date', $day->toDateString())->delete();
     }
 
     /**

@@ -28,6 +28,36 @@ services:
             - mysql
             - redis
             - mailpit
+    # Sends queued mail and notifications (booking requests and replies).
+    queue:
+        image: 'sail-8.4/app'
+        command: ['php', 'artisan', 'queue:work', '--tries=3', '--sleep=3']
+        restart: unless-stopped
+        environment:
+            WWWUSER: '${WWWUSER}'
+            LARAVEL_SAIL: 1
+        volumes:
+            - '.:/var/www/html'
+            - './docker/php/opcache.ini:/etc/php/8.4/cli/conf.d/99-opcache.ini:ro'
+        networks:
+            - sail
+        depends_on:
+            - laravel.test
+    # Runs scheduled commands, e.g. expiring booking requests nobody answered.
+    scheduler:
+        image: 'sail-8.4/app'
+        command: ['php', 'artisan', 'schedule:work']
+        restart: unless-stopped
+        environment:
+            WWWUSER: '${WWWUSER}'
+            LARAVEL_SAIL: 1
+        volumes:
+            - '.:/var/www/html'
+            - './docker/php/opcache.ini:/etc/php/8.4/cli/conf.d/99-opcache.ini:ro'
+        networks:
+            - sail
+        depends_on:
+            - laravel.test
     mysql:
         image: 'mysql:8.4'
         ports:

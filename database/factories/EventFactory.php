@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Enums\EventCategory;
 use App\Enums\EventStatus;
 use App\Models\Event;
 use App\Models\User;
@@ -25,10 +24,10 @@ class EventFactory extends Factory
             'venue_profile_id' => null,
             'title' => ucwords(rtrim(fake()->sentence(3), '.')),
             'description' => fake()->sentence(12),
-            'category' => fake()->randomElement(EventCategory::cases()),
             'location' => fake()->city(),
             'starts_at' => now()->addDays(fake()->numberBetween(1, 60))->setTime(fake()->numberBetween(17, 22), 0),
             'price' => fake()->randomElement([0, 60, 90, 120, 150, 180]),
+            'band_slots' => 3,
             'status' => EventStatus::Published,
         ];
     }

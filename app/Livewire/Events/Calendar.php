@@ -3,7 +3,7 @@
 namespace App\Livewire\Events;
 
 use App\Actions\UpdateAvailability;
-use App\Enums\EventStatus;
+use App\Models\BookingRequest;
 use App\Models\Event;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -17,8 +17,9 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
- * Month view of the signed-in user's events (cancelled ones are left off) and the days they have
- * marked as free for a gig. In "mark availability" mode, clicking a day toggles it.
+ * Month view of the events the signed-in user is hosting or booked for (cancelled ones are left
+ * off) and the days they have marked as free for a gig. In "mark availability" mode, clicking a
+ * day toggles it; days with an event can't be marked free.
  */
 #[Title('Calendar')]
 class Calendar extends Component
@@ -127,6 +128,25 @@ class Calendar extends Component
     }
 
     /**
+     * Requests waiting for the user's reply on events in the visible month, keyed by Y-m-d, so a band
+     * or venue can weigh them against the rest of their calendar.
+     *
+     * @return SupportCollection<string, Collection<int, BookingRequest>>
+     */
+    #[Computed]
+    public function pendingByDay(): SupportCollection
+    {
+        $month = $this->visibleMonth();
+
+        return $this->user()->receivedBookingRequests()
+            ->awaitingReply()
+            ->whereHas('event', fn (Builder $query) => $query->whereBetween('starts_at', [$month, $month->endOfMonth()]))
+            ->with('event')
+            ->get()
+            ->groupBy(fn (BookingRequest $booking) => $booking->event->starts_at->format('Y-m-d'));
+    }
+
+    /**
      * Free days in the visible month, as a Y-m-d => true lookup.
      *
      * @return array<string, bool>
@@ -142,6 +162,19 @@ class Calendar extends Component
             ->pluck('date')
             ->mapWithKeys(fn (CarbonImmutable $date) => [$date->format('Y-m-d') => true])
             ->all();
+    }
+
+    /**
+     * Days in the visible month the user is hosting or booked for an event, as a Y-m-d => true lookup.
+     *
+     * @return array<string, bool>
+     */
+    #[Computed]
+    public function busyDays(): array
+    {
+        $month = $this->visibleMonth();
+
+        return app(UpdateAvailability::class)->busyDays($this->user(), $month->toDateString(), $month->endOfMonth()->toDateString());
     }
 
     /**
@@ -176,10 +209,7 @@ class Calendar extends Component
      */
     private function calendarEvents(): Builder
     {
-        return Event::query()
-            ->whereBelongsTo($this->user(), 'owner')
-            ->where('status', '!=', EventStatus::Cancelled)
-            ->orderBy('starts_at');
+        return Event::query()->involving($this->user())->orderBy('starts_at');
     }
 
     private function user(): User

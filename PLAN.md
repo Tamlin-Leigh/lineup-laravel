@@ -21,18 +21,21 @@ lived in Firestore security rules and client-side services into a proper server-
 |----------------------|----------------------------------------------------------------------------------------------------|
 | `users`              | name, email, password, phone, `role`, `profile_photo_path`                                         |
 | `venue_profiles`     | user_id, manager name/phone/email, capacity, location, min door charge, sound engineer (+ name), equipment, `event_days` (json) |
-| `band_profiles`      | user_id, manager name/phone/email, band name, member count, member names, genre, bio              |
+| `band_profiles`      | user_id, manager name/phone/email, band name, member count, member names, genre, bio, booking fee, open to door splits |
 | `organiser_profiles` | user_id, org name, contact number/email                                                            |
 | `links`              | morphs `linkable`, `kind`, `platform`, `url`                                                       |
-| `events`             | owner, venue (optional BandLink venue), title, description, category, location, `starts_at`, price, `status` |
+| `events`             | owner, venue (set by the owner's own venue or an accepted venue booking), title, description, location, `starts_at`, price, `band_slots`, `status` |
 | `availabilities`     | user_id, `date` (unique per user): whole days an account is free for a gig                         |
-| `contact_requests`   | sender, recipient, message, dates asked about: log of "Contact now" emails (for rate limiting)   |
+| `booking_requests`   | event_id, recipient_id (a band or venue; unique together), `status`, optional message, `expires_at` (5 days or the event start), `responded_at` |
+| `notifications`      | Laravel database notifications: booking updates shown in-app as well as emailed             |
 
 ## Product goal
 
 Close the communication gap between venues, bands and organisers: each publishes the days they are free, the
-others filter by role and date to find a match, and "Contact now" starts the conversation by email. Events
-(phase 5) remain each account's own diary of confirmed gigs.
+others filter by role and date to find a match. Any of them can then create an event and book the bands (and, for
+bands and organisers, the venue) free on its date (phase 10); once a booking is accepted, the two can chat in the
+app (phase 11). Events
+(phase 5) remain each account's own diary of gigs.
 
 ## Phases
 
@@ -46,5 +49,7 @@ others filter by role and date to find a match, and "Contact now" starts the con
 - [x] **7. phpMyAdmin**: Sail service on http://localhost:8081 for browsing the local database (bound to 127.0.0.1, auto-login as `sail`)
 - [x] **8. Profile UI**: the same tabbed profile for every role (the prototype only had tabs for bands); brand icons for music and social links
 - [x] **9. Discover**: filter venues, bands and organisers by who is free on a weekend (Fri-Sun), a day or a date range, plus a name / genre / location search; read-only public profiles that leave out contact details
-- [ ] **10. Contact now**: modal with a short message sends the recipient an email with the sender's profile and dates, Reply-To the sender (recipient's address stays private); rate limited and logged
-- [ ] **11. Polish**: calendar overlay of who is free each day, README screenshots, deployment
+- [x] **10. Booking requests**: booking happens in one place, the event form, for every role. A new event is a step-by-step wizard (When → Where → Line-up → Details; venues skip Where) because the date decides who is free and the venue sets the location; editing stays one page. venues book bands for events at their own venue; bands and organisers book bands plus one venue (asked one at a time; the event takes the venue's location once it accepts). A band hosting its own event is on the line-up automatically, alongside the bands that accept. Hosting or accepting an event takes that day off your free days (and it can't be marked free again), and booked events show on your calendar. Only accounts free on the event's date are offered. Each gets an email plus a request on their Bookings page (Received / Sent tabs) and has 5 days (or until the event, if sooner) to accept or decline, after which requests expire on a schedule; accepting removes that free day, cancelling the event tells everyone asked; rate limited; queue and scheduler Sail services. Discover stays read-only. Replaces the planned "Contact now" email
+- [x] **10.1 Booking fixes**: events say how many bands will play (the host band takes a slot) and only that many can be asked; declined or expired requests free their slot for a new band (never the ones that declined), with "Book another band" links in the decline email and on Bookings; event categories removed (date tiles and band slot counts instead); the calendar key now shows Hosting / Playing / Request waiting / Free; drafts are pending events that can only be published once every band slot is filled by a band that accepted and no venue is still deciding (the owner is emailed when the last confirmation completes it); bands can list a booking fee and whether they're open to door / ticket splits (provisional until market research), shown on their profile and when hosts pick bands
+- [ ] **11. Chat**: once a booking is accepted, the event's owner and the band or venue can message each other in the app
+- [ ] **12. Polish**: calendar overlay of who is free each day, README screenshots, deployment
