@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Events;
 
-use App\Enums\EventCategory;
 use App\Models\Event;
 use App\Models\User;
 use Flux\Flux;
@@ -18,7 +17,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 
 /**
- * The signed-in user's events, split into status tabs with search, a category filter and paging.
+ * The signed-in user's events, split into status tabs with search and paging.
  */
 #[Title('Events')]
 class Index extends Component
@@ -33,12 +32,9 @@ class Index extends Component
     #[Url(as: 'q')]
     public string $search = '';
 
-    #[Url]
-    public string $category = '';
-
     public function updated(string $property): void
     {
-        if (in_array($property, ['tab', 'search', 'category'], true)) {
+        if (in_array($property, ['tab', 'search'], true)) {
             $this->resetPage();
         }
     }
@@ -55,7 +51,7 @@ class Index extends Component
     }
 
     /**
-     * How many events sit in each tab, ignoring the search and category filters.
+     * How many events sit in each tab, ignoring the search.
      *
      * @return array<string, int>
      */
@@ -78,7 +74,6 @@ class Index extends Component
 
         return $this->events()
             ->inTab($tab)
-            ->when(EventCategory::tryFrom($this->category), fn (Builder $query, EventCategory $category) => $query->where('category', $category))
             ->when($search !== '', fn (Builder $query) => $query->where(fn (Builder $query) => $query
                 ->where('title', 'like', "%{$search}%")
                 ->orWhere('location', 'like', "%{$search}%")))

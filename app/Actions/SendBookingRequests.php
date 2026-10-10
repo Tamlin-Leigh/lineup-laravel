@@ -19,7 +19,8 @@ class SendBookingRequests
     /**
      * Ask each account to take part in the event, by email and on their Bookings page. Only
      * accounts the owner may book (see User::bookableRoles()) that are free on the event's date and
-     * haven't been asked for this event already are sent one, and at most one venue at a time.
+     * haven't been asked for this event already are sent one, no more bands than the event has open
+     * band slots, and at most one venue at a time.
      *
      * @param  array<int|string>  $recipientIds
      * @return Collection<int, BookingRequest> The requests that were sent.
@@ -34,7 +35,7 @@ class SendBookingRequests
             ->get();
 
         [$venues, $others] = $recipients->partition(fn (User $user) => $user->role === UserRole::Venue);
-        $recipients = $others->concat($event->needsVenue() ? $venues->take(1) : []);
+        $recipients = $others->take($event->openBandSlots())->concat($event->needsVenue() ? $venues->take(1) : []);
 
         $requests = DB::transaction(fn () => $recipients->map(fn (User $recipient) => $event->bookingRequests()->create([
             'recipient_id' => $recipient->id,

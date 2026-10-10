@@ -3,6 +3,7 @@
 namespace App\Livewire\Events;
 
 use App\Actions\UpdateAvailability;
+use App\Models\BookingRequest;
 use App\Models\Event;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -124,6 +125,25 @@ class Calendar extends Component
             ->whereBetween('starts_at', [$month, $month->endOfMonth()])
             ->get()
             ->groupBy(fn (Event $event) => $event->starts_at->format('Y-m-d'));
+    }
+
+    /**
+     * Requests waiting for the user's reply on events in the visible month, keyed by Y-m-d, so a band
+     * or venue can weigh them against the rest of their calendar.
+     *
+     * @return SupportCollection<string, Collection<int, BookingRequest>>
+     */
+    #[Computed]
+    public function pendingByDay(): SupportCollection
+    {
+        $month = $this->visibleMonth();
+
+        return $this->user()->receivedBookingRequests()
+            ->awaitingReply()
+            ->whereHas('event', fn (Builder $query) => $query->whereBetween('starts_at', [$month, $month->endOfMonth()]))
+            ->with('event')
+            ->get()
+            ->groupBy(fn (BookingRequest $booking) => $booking->event->starts_at->format('Y-m-d'));
     }
 
     /**

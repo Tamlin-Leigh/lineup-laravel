@@ -44,6 +44,8 @@ class EditProfile extends Component
         'band_name' => 'band',
         'genre' => 'band',
         'bio' => 'band',
+        'booking_fee' => 'band',
+        'accepts_door_split' => 'band',
         'member_count' => 'members',
         'member_names' => 'members',
         'music_links' => 'links',

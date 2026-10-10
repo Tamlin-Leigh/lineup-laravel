@@ -133,6 +133,7 @@ class ManageEvent extends Component
             'when' => $this->form->validateFields(['date', 'time']),
             // Somewhere else needs a location; a venue's location is filled in from the venue.
             'where' => $this->venueId === '' ? $this->form->validateFields(['location']) : null,
+            'line-up' => $this->validateBandSlots(),
             default => null,
         };
 
@@ -156,6 +157,53 @@ class ManageEvent extends Component
         }
 
         $this->step--;
+    }
+
+    /**
+     * Band slots already spoken for: the host band (if a band is hosting) plus, on an existing event,
+     * the bands that accepted or are still deciding.
+     */
+    public function takenBandSlots(): int
+    {
+        return $this->event?->takenBandSlots() ?? ($this->user()->role === UserRole::Band ? 1 : 0);
+    }
+
+    /**
+     * How many more bands can be asked, given the number of band slots in the form.
+     */
+    public function openBandSlots(): int
+    {
+        return max(0, (int) $this->form->band_slots - $this->takenBandSlots());
+    }
+
+    /**
+     * What still has to be confirmed before this event can be published (see Event::publishBlockers()).
+     * Requests about to go out count as unconfirmed too.
+     *
+     * @return list<string>
+     */
+    public function publishBlockers(): array
+    {
+        $slots = (int) $this->form->band_slots;
+        $blockers = $this->event?->publishBlockers($slots) ?? [];
+
+        if ($this->event === null && $this->takenBandSlots() < $slots) {
+            $blockers[] = trans_choice(':confirmed of :count band confirmed.|:confirmed of :count bands confirmed.', $slots, ['confirmed' => $this->takenBandSlots(), 'count' => $slots]);
+        }
+
+        if ($this->recipientIds() !== []) {
+            $blockers[] = __('The booking requests you are sending need answers first.');
+        }
+
+        return array_values(array_unique($blockers));
+    }
+
+    /**
+     * An event that's already published stays publishable; otherwise it has to be confirmed first.
+     */
+    public function canPublish(): bool
+    {
+        return $this->event?->status === EventStatus::Published || $this->publishBlockers() === [];
     }
 
     /**
@@ -197,7 +245,9 @@ class ManageEvent extends Component
 
         $attributes = $this->form->attributes($isNew);
         $recipientIds = $this->recipientIds();
+        $this->validateBandSlots();
         $this->validateBooking($attributes, $recipientIds);
+        $this->validatePublishing($attributes);
 
         $wasCancelled = $this->event?->status === EventStatus::Cancelled;
 
@@ -363,6 +413,49 @@ class ManageEvent extends Component
     private function recipientIds(): array
     {
         return array_values(array_filter([...$this->bandIds, $this->venueId]));
+    }
+
+    /**
+     * The number of band slots can't drop below the bands already playing or asked (a band hosting
+     * counts as one), and no more bands can be ticked than there are open slots.
+     */
+    private function validateBandSlots(): void
+    {
+        $this->form->validateFields(['band_slots'], $this->event === null);
+
+        $taken = $this->takenBandSlots();
+
+        if ((int) $this->form->band_slots < max(1, $taken)) {
+            // Only the owner edits an event, so a band here is the host band, already taking a slot.
+            throw ValidationException::withMessages(['form.band_slots' => $this->user()->role === UserRole::Band && $taken === 1
+                ? __('Your band is one of the bands playing, so this has to be at least 1.')
+                : trans_choice('At least :count band is already playing or has been asked.|At least :count bands are already playing or have been asked.', $taken)]);
+        }
+
+        $open = $this->openBandSlots();
+
+        if (count($this->bandIds) > $open) {
+            throw ValidationException::withMessages(['bandIds' => trans_choice(
+                '{0} There are no band slots left. Add more slots to ask another band.|{1} There is only :count band slot left, so tick one band.|[2,*] There are only :count band slots left, so tick up to :count bands.',
+                $open,
+            )]);
+        }
+    }
+
+    /**
+     * Publishing a pending event needs its full line-up and venue confirmed first.
+     *
+     * @param  array<string, mixed>  $attributes  The validated event attributes about to be saved.
+     */
+    private function validatePublishing(array $attributes): void
+    {
+        if ($attributes['status'] !== EventStatus::Published->value || $this->canPublish()) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'form.status' => __('Keep it as a draft until it is confirmed: :reasons', ['reasons' => implode(' ', $this->publishBlockers())]),
+        ]);
     }
 
     /**

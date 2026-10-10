@@ -1,7 +1,7 @@
 <?php
 
-use App\Enums\EventCategory;
 use App\Livewire\Events\Index;
+use App\Models\BookingRequest;
 use App\Models\Event;
 use App\Models\User;
 use Livewire\Livewire;
@@ -65,16 +65,15 @@ test('search treats % and _ literally', function () {
         ->assertDontSee('Plain Show');
 });
 
-test('events can be filtered by category', function () {
-    $user = User::factory()->band()->create();
-    Event::factory()->for($user, 'owner')->create(['title' => 'Big Fest', 'category' => EventCategory::Festival]);
-    Event::factory()->for($user, 'owner')->create(['title' => 'Quiet Set', 'category' => EventCategory::AcousticSet]);
+test('each event shows how many of its band slots are filled', function () {
+    $user = User::factory()->venue()->create();
+    $event = Event::factory()->for($user, 'owner')->create(['band_slots' => 3]);
+    BookingRequest::factory()->for($event)->accepted()->create();
+    BookingRequest::factory()->for($event)->declined()->create();
 
     Livewire::actingAs($user)
         ->test(Index::class)
-        ->set('category', EventCategory::Festival->value)
-        ->assertSee('Big Fest')
-        ->assertDontSee('Quiet Set');
+        ->assertSee('1 of 3 bands');
 });
 
 test('results are paged six at a time', function () {

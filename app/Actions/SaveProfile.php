@@ -66,6 +66,8 @@ class SaveProfile
             'member_names' => $input['member_names'],
             'genre' => $input['genre'],
             'bio' => ($input['bio'] ?? '') ?: null,
+            'booking_fee' => filled($input['booking_fee'] ?? null) ? (int) $input['booking_fee'] : null,
+            'accepts_door_split' => (bool) ($input['accepts_door_split'] ?? false),
         ]);
 
         $this->syncLinks($profile, LinkKind::Music, $input['music_links'] ?? []);

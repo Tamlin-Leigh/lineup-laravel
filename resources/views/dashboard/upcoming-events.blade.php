@@ -7,9 +7,8 @@
     </x-slot:heading>
 
     @forelse ($upcomingEvents as $event)
-        @php [$from, $to] = $event->category->accent(); @endphp
         <a href="{{ route('events.edit', $event) }}" wire:navigate class="flex items-center gap-3 hover:no-underline">
-            <span class="size-10 shrink-0 rounded-lg" style="background: linear-gradient(135deg, {{ $from }}, {{ $to }})" aria-hidden="true"></span>
+            <x-event-date :event="$event" />
             <span class="min-w-0 flex-1">
                 <span class="block truncate font-bold text-zinc-900 dark:text-white">{{ $event->title }}</span>
                 <span class="block truncate text-xs text-zinc-500 dark:text-zinc-400">{{ $event->location }}</span>

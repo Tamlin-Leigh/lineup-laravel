@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\EventCategory;
 use App\Enums\EventStatus;
 use App\Livewire\Events\ManageEvent;
 use App\Models\Event;
@@ -14,7 +13,6 @@ function validEvent(): array
 {
     return [
         'form.title' => 'Friday Late Show',
-        'form.category' => EventCategory::HeadlineShow->value,
         'form.location' => 'The Loft, Cape Town',
         'form.date' => now()->addWeek()->format('Y-m-d'),
         'form.time' => '21:30',
@@ -35,7 +33,6 @@ test('a user can create an event', function () {
 
     expect($user->events()->sole())
         ->title->toBe('Friday Late Show')
-        ->category->toBe(EventCategory::HeadlineShow)
         ->price->toBe(120)
         ->status->toBe(EventStatus::Published)
         ->and($user->events()->sole()->starts_at->format('Y-m-d H:i'))->toBe(now()->addWeek()->format('Y-m-d').' 21:30');
@@ -44,9 +41,9 @@ test('a user can create an event', function () {
 test('required fields are validated', function () {
     Livewire::actingAs(User::factory()->band()->create())
         ->test(ManageEvent::class)
-        ->set(['form.title' => '', 'form.category' => '', 'form.location' => '', 'form.time' => '25:00', 'form.price' => '-5'])
+        ->set(['form.title' => '', 'form.location' => '', 'form.time' => '25:00', 'form.price' => '-5', 'form.band_slots' => '0'])
         ->call('save')
-        ->assertHasErrors(['form.title', 'form.category', 'form.location', 'form.time', 'form.price']);
+        ->assertHasErrors(['form.title', 'form.location', 'form.time', 'form.price', 'form.band_slots']);
 });
 
 test('a new event cannot start out cancelled', function () {
@@ -77,7 +74,7 @@ test('venues hold their events at their own venue', function () {
     Livewire::actingAs($user)
         ->test(ManageEvent::class)
         ->assertSet('form.location', $user->venueProfile->location)
-        ->set(validEvent())
+        ->set([...validEvent(), 'form.status' => EventStatus::Draft->value])
         ->call('save')
         ->assertHasNoErrors();
 

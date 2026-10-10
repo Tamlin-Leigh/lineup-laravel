@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\EventCategory;
 use App\Enums\EventStatus;
 use App\Livewire\Events\ManageEvent;
 use App\Models\Availability;
@@ -60,9 +59,8 @@ test('an organiser walks through the steps and books a venue and a band', functi
         ->assertSee('Booking Requests')
         ->set([
             'form.title' => 'Spring Social',
-            'form.category' => EventCategory::Festival->value,
             'form.price' => '80',
-            'form.status' => EventStatus::Published->value,
+            'form.status' => EventStatus::Draft->value,
         ])
         ->call('next')
         ->assertHasNoErrors()

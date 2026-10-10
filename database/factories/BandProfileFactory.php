@@ -31,6 +31,8 @@ class BandProfileFactory extends Factory
             'member_names' => implode(', ', array_map(fn () => fake()->firstName(), range(1, $memberCount))),
             'genre' => fake()->randomElement(['Rock', 'Jazz', 'Hip-Hop', 'Indie', 'Electronic', 'Folk']),
             'bio' => fake()->optional()->sentence(12),
+            'booking_fee' => fake()->optional()->randomElement([1500, 2500, 4000, 6000]),
+            'accepts_door_split' => fake()->boolean(),
         ];
     }
 }

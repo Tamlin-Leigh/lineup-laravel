@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\EventCategory;
 use App\Enums\UserRole;
 use App\Models\Availability;
 use App\Models\Event;
@@ -47,8 +46,7 @@ test("a band's stats and lists come from its published events", function () {
     $owned->create(['title' => 'This Year', 'starts_at' => '2026-11-01 20:00']);
     $owned->create(['title' => 'Next Year', 'starts_at' => '2027-02-01 20:00']);
     $owned->draft()->create(['title' => 'Still a Draft', 'starts_at' => '2026-10-20 20:00']);
-    $owned->past()->create(['category' => EventCategory::Festival]);
-    $owned->past()->create(['category' => EventCategory::Festival]);
+    $owned->past()->count(2)->create();
     Event::factory()->create(['title' => 'Another Band', 'starts_at' => '2026-10-10 20:00']);
 
     $this->actingAs($user)
@@ -59,8 +57,7 @@ test("a band's stats and lists come from its published events", function () {
         ->assertSee('This Year')
         ->assertSee('Next Year')
         ->assertDontSee('Still a Draft')
-        ->assertDontSee('Another Band')
-        ->assertSee('Festival &middot; 2', false);
+        ->assertDontSee('Another Band');
 
     Carbon::setTestNow();
 });
