@@ -30,6 +30,17 @@ class EventPolicy
         return $user->id === $event->user_id || $user->role === UserRole::Admin;
     }
 
+    /**
+     * Owners can send booking requests for their own events while they are still to come.
+     */
+    public function sendBookingRequests(User $user, Event $event): bool
+    {
+        return $user->id === $event->user_id
+            && $user->bookableRoles() !== []
+            && $event->status !== EventStatus::Cancelled
+            && ! $event->isPast();
+    }
+
     public function delete(User $user, Event $event): bool
     {
         return $this->update($user, $event);

@@ -5,6 +5,7 @@
     $month = $this->visibleMonth();
     $todayKey = now()->format('Y-m-d');
     $eventsByDay = $this->eventsByDay;
+    $busyDays = $this->busyDays;
     $freeDays = $this->freeDays;
 @endphp
 
@@ -74,7 +75,8 @@
                         @php
                             $key = $day?->format('Y-m-d');
                             $isFree = $day && isset($freeDays[$key]);
-                            $isToggleable = $day && $markingAvailability && $this->canChange($day);
+                            // A day with an event isn't free, so it can't be marked (only cleared, if it already was).
+                            $isToggleable = $day && $markingAvailability && $this->canChange($day) && ($isFree || ! isset($busyDays[$key]));
                         @endphp
 
                         <div
@@ -111,7 +113,7 @@
                                     @foreach ($eventsByDay->get($key, []) as $event)
                                         @php [$from] = $event->category->accent(); @endphp
                                         <a
-                                            href="{{ route('events.edit', $event) }}"
+                                            href="{{ $event->user_id === auth()->id() ? route('events.edit', $event) : route('bookings.index') }}"
                                             wire:navigate
                                             title="{{ $event->title }} ({{ $event->starts_at->format('H:i') }}){{ $event->status === EventStatus::Draft ? ' - '.__('Draft') : '' }}"
                                             @class([
@@ -154,7 +156,7 @@
         <x-profile-section :title="__('Today\'s Events')">
             @forelse ($this->todaysEvents as $event)
                 @php [$from] = $event->category->accent(); @endphp
-                <a href="{{ route('events.edit', $event) }}" wire:navigate class="flex items-start gap-3 hover:no-underline">
+                <a href="{{ $event->user_id === auth()->id() ? route('events.edit', $event) : route('bookings.index') }}" wire:navigate class="flex items-start gap-3 hover:no-underline">
                     <span class="mt-0.5 grid size-9 shrink-0 place-items-center rounded-xl text-white" style="background-color: {{ $from }}">
                         <flux:icon.clock variant="mini" />
                     </span>

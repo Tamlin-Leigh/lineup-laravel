@@ -2,15 +2,19 @@
 
 namespace App\Models;
 
+use App\Enums\BookingStatus;
 use App\Enums\EventCategory;
 use App\Enums\EventStatus;
+use App\Enums\UserRole;
 use Database\Factories\EventFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -75,6 +79,48 @@ class Event extends Model
     }
 
     /**
+     * Bands asked to play at this event, and venues asked to host it.
+     *
+     * @return HasMany<BookingRequest, $this>
+     */
+    public function bookingRequests(): HasMany
+    {
+        return $this->hasMany(BookingRequest::class);
+    }
+
+    /**
+     * The bands playing: a band hosting its own event is always on the line-up, followed by the
+     * bands that accepted a booking request.
+     *
+     * @return Collection<int, User>
+     */
+    public function lineUp(): Collection
+    {
+        $booked = User::query()
+            ->where('role', UserRole::Band)
+            ->whereHas('receivedBookingRequests', fn (Builder $query) => $query
+                ->where('event_id', $this->id)
+                ->where('status', BookingStatus::Accepted))
+            ->with('bandProfile')
+            ->orderBy('name')
+            ->get();
+
+        return $this->owner->role === UserRole::Band
+            ? $booked->prepend($this->owner->loadMissing('bandProfile'))
+            : $booked;
+    }
+
+    /**
+     * An event has one venue, so a venue can only be asked while the event has none and no other
+     * venue is still considering (or has accepted) a request for it.
+     */
+    public function needsVenue(): bool
+    {
+        return $this->venue_profile_id === null
+            && ! $this->bookingRequests()->open()->whereRelation('recipient', 'role', UserRole::Venue)->exists();
+    }
+
+    /**
      * @param  Builder<self>  $query
      */
     #[Scope]
@@ -99,6 +145,23 @@ class Event extends Model
     protected function published(Builder $query): void
     {
         $query->where('status', EventStatus::Published);
+    }
+
+    /**
+     * Events the user is taking part in: ones they host, and ones they accepted a booking for.
+     * Cancelled events are left out.
+     *
+     * @param  Builder<self>  $query
+     */
+    #[Scope]
+    protected function involving(Builder $query, User $user): void
+    {
+        $query->where('status', '!=', EventStatus::Cancelled)
+            ->where(fn (Builder $query) => $query
+                ->whereBelongsTo($user, 'owner')
+                ->orWhereHas('bookingRequests', fn (Builder $requests) => $requests
+                    ->where('recipient_id', $user->id)
+                    ->where('status', BookingStatus::Accepted)));
     }
 
     /**

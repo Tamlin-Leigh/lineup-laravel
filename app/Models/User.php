@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\UserRole;
+use App\Notifications\BookingRequested;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -85,6 +86,54 @@ class User extends Authenticatable implements MustVerifyEmail
     public function availabilities(): HasMany
     {
         return $this->hasMany(Availability::class);
+    }
+
+    /**
+     * Requests from other accounts to play at (bands) or host (venues) their events.
+     *
+     * @return HasMany<BookingRequest, $this>
+     */
+    public function receivedBookingRequests(): HasMany
+    {
+        return $this->hasMany(BookingRequest::class, 'recipient_id');
+    }
+
+    /**
+     * Who this account can ask to take part in its events. Every host books bands; bands and
+     * organisers also need a venue, while a venue's events are at its own venue.
+     *
+     * @return list<UserRole>
+     */
+    public function bookableRoles(): array
+    {
+        return match ($this->role) {
+            UserRole::Venue => [UserRole::Band],
+            UserRole::Band, UserRole::Organiser => [UserRole::Venue, UserRole::Band],
+            UserRole::Admin => [],
+        };
+    }
+
+    public function canBook(UserRole $role): bool
+    {
+        return in_array($role, $this->bookableRoles(), true);
+    }
+
+    /**
+     * Bands and venues are booked; organisers only book others.
+     */
+    public function canReceiveBookingRequests(): bool
+    {
+        return in_array($this->role, [UserRole::Band, UserRole::Venue], true);
+    }
+
+    /**
+     * The number on the sidebar's Bookings item: requests still waiting for this account's reply,
+     * plus booking updates (replies, expiries, cancellations) it hasn't seen yet.
+     */
+    public function bookingsNeedingAttention(): int
+    {
+        return $this->receivedBookingRequests()->awaitingReply()->count()
+            + $this->unreadNotifications()->where('type', '!=', BookingRequested::class)->count();
     }
 
     /**

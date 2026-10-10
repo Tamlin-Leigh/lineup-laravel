@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\BandProfile;
 use App\Models\OrganiserProfile;
+use App\Models\User;
 use App\Models\VenueProfile;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -42,6 +43,8 @@ class AppServiceProvider extends ServiceProvider
             'venue_profile' => VenueProfile::class,
             'band_profile' => BandProfile::class,
             'organiser_profile' => OrganiserProfile::class,
+            // Notifications are stored against users (notifications.notifiable_type).
+            'user' => User::class,
         ]);
 
         DB::prohibitDestructiveCommands(

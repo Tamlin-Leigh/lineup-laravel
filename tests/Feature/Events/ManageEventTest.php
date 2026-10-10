@@ -71,37 +71,29 @@ test('an invalid date in the link falls back to tomorrow', function () {
         ->assertSet('form.date', now()->addDay()->format('Y-m-d'));
 });
 
-test('venues start from their own venue', function () {
+test('venues hold their events at their own venue', function () {
     $user = User::factory()->venue()->create();
 
     Livewire::actingAs($user)
         ->test(ManageEvent::class)
-        ->assertSet('form.venue_profile_id', (string) $user->venueProfile->id)
-        ->assertSet('form.location', $user->venueProfile->location);
-});
-
-test('picking a BandLink venue fills in an empty location', function () {
-    $venue = User::factory()->venue()->create()->venueProfile;
-
-    Livewire::actingAs(User::factory()->band()->create())
-        ->test(ManageEvent::class)
-        ->set('form.venue_profile_id', (string) $venue->id)
-        ->assertSet('form.location', $venue->location)
-        ->set(['form.location' => 'Typed by hand', 'form.venue_profile_id' => ''])
-        ->assertSet('form.location', 'Typed by hand');
-});
-
-test('an event can be linked to a BandLink venue', function () {
-    $user = User::factory()->band()->create();
-    $venue = User::factory()->venue()->create()->venueProfile;
-
-    Livewire::actingAs($user)
-        ->test(ManageEvent::class)
-        ->set([...validEvent(), 'form.venue_profile_id' => (string) $venue->id])
+        ->assertSet('form.location', $user->venueProfile->location)
+        ->set(validEvent())
         ->call('save')
         ->assertHasNoErrors();
 
-    expect($user->events()->sole()->venue->is($venue))->toBeTrue();
+    expect($user->events()->sole()->venue->is($user->venueProfile))->toBeTrue();
+});
+
+test('other events are only linked to a BandLink venue once it accepts a booking request', function () {
+    $user = User::factory()->band()->create();
+
+    Livewire::actingAs($user)
+        ->test(ManageEvent::class)
+        ->set(validEvent())
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($user->events()->sole()->venue_profile_id)->toBeNull();
 });
 
 test('the owner can edit and cancel an event', function () {

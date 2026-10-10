@@ -1,4 +1,6 @@
 <div class="flex flex-col gap-5">
+    @include('dashboard.pending-bookings')
+
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <x-stat-card :label="__('Booked Before Year End')" :value="$bookedBeforeYearEnd" icon="calendar" />
         <x-stat-card :label="__('Events Completed')" :value="$completedEvents" icon="check-circle" />

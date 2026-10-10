@@ -3,7 +3,6 @@
 namespace App\Livewire\Events;
 
 use App\Actions\UpdateAvailability;
-use App\Enums\EventStatus;
 use App\Models\Event;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -17,8 +16,9 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
- * Month view of the signed-in user's events (cancelled ones are left off) and the days they have
- * marked as free for a gig. In "mark availability" mode, clicking a day toggles it.
+ * Month view of the events the signed-in user is hosting or booked for (cancelled ones are left
+ * off) and the days they have marked as free for a gig. In "mark availability" mode, clicking a
+ * day toggles it; days with an event can't be marked free.
  */
 #[Title('Calendar')]
 class Calendar extends Component
@@ -145,6 +145,19 @@ class Calendar extends Component
     }
 
     /**
+     * Days in the visible month the user is hosting or booked for an event, as a Y-m-d => true lookup.
+     *
+     * @return array<string, bool>
+     */
+    #[Computed]
+    public function busyDays(): array
+    {
+        $month = $this->visibleMonth();
+
+        return app(UpdateAvailability::class)->busyDays($this->user(), $month->toDateString(), $month->endOfMonth()->toDateString());
+    }
+
+    /**
      * The next few free days from today, for the side panel.
      *
      * @return SupportCollection<int, CarbonImmutable>
@@ -176,10 +189,7 @@ class Calendar extends Component
      */
     private function calendarEvents(): Builder
     {
-        return Event::query()
-            ->whereBelongsTo($this->user(), 'owner')
-            ->where('status', '!=', EventStatus::Cancelled)
-            ->orderBy('starts_at');
+        return Event::query()->involving($this->user())->orderBy('starts_at');
     }
 
     private function user(): User

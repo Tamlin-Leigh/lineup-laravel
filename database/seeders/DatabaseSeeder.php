@@ -42,7 +42,7 @@ class DatabaseSeeder extends Seeder
         $availability->markFree($band, $this->upcomingWeekendDays(3, [CarbonInterface::FRIDAY, CarbonInterface::SATURDAY, CarbonInterface::SUNDAY]));
         $availability->markFree($organiser, $this->upcomingWeekendDays(2, [CarbonInterface::SATURDAY]));
 
-        $this->call(DiscoverDemoSeeder::class);
+        $this->call([DiscoverDemoSeeder::class, BookingDemoSeeder::class]);
     }
 
     /**

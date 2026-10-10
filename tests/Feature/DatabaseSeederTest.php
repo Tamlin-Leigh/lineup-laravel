@@ -1,6 +1,8 @@
 <?php
 
+use App\Enums\BookingStatus;
 use App\Enums\UserRole;
+use App\Models\BookingRequest;
 use App\Models\Event;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
@@ -19,7 +21,11 @@ test('the seeder creates demo accounts per role with sample events and free days
         ->and($band->events()->inTab('active')->count())->toBe(3)
         ->and($band->events()->inTab('draft')->count())->toBe(2)
         ->and($band->events()->inTab('past')->count())->toBe(3)
-        ->and(Event::count())->toBe(10);
+        ->and(Event::count())->toBe(10)
+        ->and($band->receivedBookingRequests()->awaitingReply()->count())->toBe(1)
+        ->and($band->receivedBookingRequests()->where('status', BookingStatus::Accepted)->count())->toBe(1)
+        ->and(User::where('email', 'venue@example.com')->sole()->receivedBookingRequests()->awaitingReply()->count())->toBe(1)
+        ->and(BookingRequest::count())->toBe(5);
 
     foreach (['venue@example.com', 'band@example.com', 'organiser@example.com'] as $email) {
         expect(User::where('email', $email)->sole()->availabilities()->upcoming()->exists())->toBeTrue();

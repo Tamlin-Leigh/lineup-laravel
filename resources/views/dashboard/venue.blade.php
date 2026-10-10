@@ -1,6 +1,12 @@
 @php use App\Enums\SoundEngineer; @endphp
 
 <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+    @if ($pendingBookings > 0)
+        <div class="md:col-span-2">
+            @include('dashboard.pending-bookings')
+        </div>
+    @endif
+
     <div class="md:col-span-2">
         @include('dashboard.availability')
     </div>

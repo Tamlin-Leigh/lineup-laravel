@@ -36,6 +36,7 @@ class DashboardController extends Controller
             'upcomingEvents' => $published()->upcoming()->limit(3)->get(),
             'upcomingFreeDays' => $user->availabilities()->upcoming()->limit(6)->pluck('date'),
             'freeDayCount' => $user->availabilities()->upcoming()->count(),
+            'pendingBookings' => $user->receivedBookingRequests()->awaitingReply()->count(),
             'bookedBeforeYearEnd' => $published()->whereBetween('starts_at', [now(), now()->endOfYear()])->count(),
             'completedEvents' => $published()->past()->count(),
             'pastCategoryCounts' => $published()->past()->get(['category'])

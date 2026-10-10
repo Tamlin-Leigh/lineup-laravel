@@ -18,7 +18,7 @@ Requires Docker Desktop. The host ports are set in `.env` (`APP_PORT=8080`, `FOR
 ```bash
 cp .env.example .env
 composer install
-docker compose up -d                                     # app, mysql, redis, mailpit, phpmyadmin
+docker compose up -d                                     # app, queue, scheduler, mysql, redis, mailpit, phpmyadmin
 docker compose exec -u sail laravel.test php artisan key:generate
 docker compose exec -u sail laravel.test php artisan migrate --seed
 npm install && npm run dev
@@ -31,6 +31,11 @@ npm install && npm run dev
 
 The seeder creates one demo account per role, all with the password `password`:
 `venue@example.com`, `band@example.com`, `organiser@example.com` and `admin@example.com`.
+The demo band and demo venue each have a booking request waiting on their Bookings page.
+
+Booking emails and in-app notices are sent by the `queue` container and unanswered requests are expired by the
+`scheduler` container (`php artisan bookings:expire`, every 15 minutes). The queue worker keeps the code it
+started with, so after changing a notification or action run `docker compose restart queue`.
 
 ## Everyday commands
 
@@ -48,7 +53,7 @@ files it writes (compiled views, logs, cache) can no longer be updated by the ap
 | Migration status             | `sail artisan migrate:status`           | `docker compose exec -u sail laravel.test php artisan migrate:status`     |
 | New migration                | `sail artisan make:migration create_x_table` | `docker compose exec -u sail laravel.test php artisan make:migration create_x_table` |
 | Tinker                       | `sail tinker`                           | `docker compose exec -u sail laravel.test php artisan tinker`             |
-| Queue worker                 | `sail artisan queue:work`               | `docker compose exec -u sail laravel.test php artisan queue:work`         |
+| Queue worker logs / restart  | `sail logs queue` / `sail restart queue` | `docker compose logs queue` / `docker compose restart queue`      |
 | MySQL shell                  | `sail mysql`                            | `docker compose exec mysql mysql -u sail -ppassword bandlink`     |
 | Tests                        | `sail test`                             | `docker compose exec -u sail laravel.test php artisan test`               |
 

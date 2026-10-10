@@ -33,6 +33,11 @@
                             {{ __('Events') }}
                         </flux:sidebar.item>
 
+                        @php $bookingCount = auth()->user()->bookingsNeedingAttention(); @endphp
+                        <flux:sidebar.item icon="inbox" :href="route('bookings.index')" :current="request()->routeIs('bookings.*')" :badge="$bookingCount ?: null" wire:navigate data-test="sidebar-bookings">
+                            {{ __('Bookings') }}
+                        </flux:sidebar.item>
+
                         <flux:sidebar.item icon="user-circle" :href="route('profile.show')" :current="request()->routeIs('profile.show')" wire:navigate>
                             {{ __('Profile') }}
                         </flux:sidebar.item>
