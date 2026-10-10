@@ -1,11 +1,11 @@
 @php
-    use App\Enums\EventCategory;
     use App\Enums\EventStatus;
 
     $month = $this->visibleMonth();
     $todayKey = now()->format('Y-m-d');
     $eventsByDay = $this->eventsByDay;
     $busyDays = $this->busyDays;
+    $pendingByDay = $this->pendingByDay;
     $freeDays = $this->freeDays;
 @endphp
 
@@ -111,19 +111,35 @@
                                     </div>
 
                                     @foreach ($eventsByDay->get($key, []) as $event)
-                                        @php [$from] = $event->category->accent(); @endphp
+                                        @php $hosting = $event->user_id === auth()->id(); @endphp
                                         <a
-                                            href="{{ $event->user_id === auth()->id() ? route('events.edit', $event) : route('bookings.index') }}"
+                                            href="{{ $hosting ? route('events.edit', $event) : route('bookings.index') }}"
                                             wire:navigate
-                                            title="{{ $event->title }} ({{ $event->starts_at->format('H:i') }}){{ $event->status === EventStatus::Draft ? ' - '.__('Draft') : '' }}"
+                                            title="{{ $hosting ? __('Hosting') : __('Playing') }}: {{ $event->title }} ({{ $event->starts_at->format('H:i') }}){{ $event->status === EventStatus::Draft ? ' - '.__('Draft') : '' }}"
                                             @class([
-                                                'truncate rounded-md px-1.5 py-0.5 text-[11px] font-semibold hover:no-underline',
-                                                'border border-dashed opacity-70' => $event->status === EventStatus::Draft,
+                                                'truncate rounded-md border px-1.5 py-0.5 text-[11px] font-semibold hover:no-underline',
+                                                'border-brand/30 bg-brand/10 text-brand' => $hosting,
+                                                'border-violet-300 bg-violet-100 text-violet-800' => ! $hosting,
+                                                'border-dashed opacity-70' => $event->status === EventStatus::Draft,
                                                 'pointer-events-none' => $markingAvailability,
                                             ])
-                                            style="background-color: color-mix(in srgb, {{ $from }} 15%, transparent); color: {{ $from }}; border-color: {{ $from }}"
                                         >
                                             {{ $event->title }}
+                                        </a>
+                                    @endforeach
+
+                                    @foreach ($pendingByDay->get($key, []) as $booking)
+                                        <a
+                                            href="{{ route('bookings.index') }}"
+                                            wire:navigate
+                                            title="{{ __('Request waiting for your reply') }}: {{ $booking->event->title }} ({{ $booking->event->starts_at->format('H:i') }})"
+                                            @class([
+                                                'truncate rounded-md border border-dashed border-amber-400 bg-amber-50 px-1.5 py-0.5 text-[11px] font-semibold text-amber-800 hover:no-underline',
+                                                'pointer-events-none' => $markingAvailability,
+                                            ])
+                                            data-test="calendar-request-{{ $booking->id }}"
+                                        >
+                                            {{ $booking->event->title }}?
                                         </a>
                                     @endforeach
                                 </div>
@@ -155,9 +171,9 @@
 
         <x-profile-section :title="__('Today\'s Events')">
             @forelse ($this->todaysEvents as $event)
-                @php [$from] = $event->category->accent(); @endphp
-                <a href="{{ $event->user_id === auth()->id() ? route('events.edit', $event) : route('bookings.index') }}" wire:navigate class="flex items-start gap-3 hover:no-underline">
-                    <span class="mt-0.5 grid size-9 shrink-0 place-items-center rounded-xl text-white" style="background-color: {{ $from }}">
+                @php $hosting = $event->user_id === auth()->id(); @endphp
+                <a href="{{ $hosting ? route('events.edit', $event) : route('bookings.index') }}" wire:navigate class="flex items-start gap-3 hover:no-underline">
+                    <span @class(['mt-0.5 grid size-9 shrink-0 place-items-center rounded-xl text-white', 'bg-brand' => $hosting, 'bg-violet-600' => ! $hosting])>
                         <flux:icon.clock variant="mini" />
                     </span>
                     <span class="min-w-0">
@@ -175,13 +191,19 @@
                 <span class="size-2.5 shrink-0 rounded-full bg-emerald-500"></span>
                 {{ __('Free for a gig') }}
             </div>
-            @foreach (EventCategory::cases() as $category)
-                <div class="flex items-center gap-2.5 text-zinc-900 dark:text-white">
-                    <span class="size-2.5 shrink-0 rounded-full" style="background-color: {{ $category->accent()[0] }}"></span>
-                    {{ $category->label() }}
-                </div>
-            @endforeach
-            <flux:text size="sm" class="mt-1">{{ __('Dashed entries are drafts.') }}</flux:text>
+            <div class="flex items-center gap-2.5 text-zinc-900 dark:text-white">
+                <span class="size-2.5 shrink-0 rounded-full bg-brand"></span>
+                {{ __('Hosting: your own event') }}
+            </div>
+            <div class="flex items-center gap-2.5 text-zinc-900 dark:text-white">
+                <span class="size-2.5 shrink-0 rounded-full bg-violet-600"></span>
+                {{ __('Playing: you accepted a booking') }}
+            </div>
+            <div class="flex items-center gap-2.5 text-zinc-900 dark:text-white">
+                <span class="size-2.5 shrink-0 rounded-full border border-dashed border-amber-500 bg-amber-100"></span>
+                {{ __('Request waiting for your reply') }}
+            </div>
+            <flux:text size="sm" class="mt-1">{{ __('Faded, dashed entries are drafts only you can see.') }}</flux:text>
         </x-profile-section>
     </div>
 </div>

@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\BookingStatus;
-use App\Enums\EventCategory;
 use App\Enums\EventStatus;
 use App\Enums\UserRole;
 use Database\Factories\EventFactory;
@@ -23,15 +22,15 @@ use Illuminate\Support\Carbon;
  * @property int|null $venue_profile_id
  * @property string $title
  * @property string|null $description
- * @property EventCategory $category
  * @property string $location
  * @property Carbon $starts_at
  * @property int $price Whole rand (ZAR); 0 means free.
+ * @property int $band_slots How many bands play, the host band included.
  * @property EventStatus $status
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['venue_profile_id', 'title', 'description', 'category', 'location', 'starts_at', 'price', 'status'])]
+#[Fillable(['venue_profile_id', 'title', 'description', 'location', 'starts_at', 'price', 'band_slots', 'status'])]
 class Event extends Model
 {
     /** @use HasFactory<EventFactory> */
@@ -55,9 +54,9 @@ class Event extends Model
     protected function casts(): array
     {
         return [
-            'category' => EventCategory::class,
             'starts_at' => 'datetime',
             'price' => 'integer',
+            'band_slots' => 'integer',
             'status' => EventStatus::class,
         ];
     }
@@ -108,6 +107,65 @@ class Event extends Model
         return $this->owner->role === UserRole::Band
             ? $booked->prepend($this->owner->loadMissing('bandProfile'))
             : $booked;
+    }
+
+    /**
+     * Band slots already spoken for: the host band (if a band is hosting), bands that accepted, and
+     * bands still deciding. Declined, expired and cancelled requests free their slot again.
+     */
+    public function takenBandSlots(): int
+    {
+        $bands = $this->bookingRequests()->open()->whereRelation('recipient', 'role', UserRole::Band)->count();
+
+        return $bands + ($this->owner->role === UserRole::Band ? 1 : 0);
+    }
+
+    /**
+     * How many more bands can be asked to play.
+     */
+    public function openBandSlots(): int
+    {
+        return max(0, $this->band_slots - $this->takenBandSlots());
+    }
+
+    /**
+     * What still has to be confirmed before the event can be published: every band slot filled by a
+     * band that accepted (a hosting band counts as one), and no venue still deciding. A draft is a
+     * pending event; there is no point announcing one without its line-up and venue.
+     *
+     * @param  int|null  $bandSlots  The band slot count to check against; defaults to the saved one.
+     * @return list<string> Reasons, empty when the event is ready to publish.
+     */
+    public function publishBlockers(?int $bandSlots = null): array
+    {
+        $bandSlots ??= $this->band_slots;
+        $blockers = [];
+
+        $confirmed = $this->bookingRequests()
+            ->where('status', BookingStatus::Accepted)
+            ->whereRelation('recipient', 'role', UserRole::Band)
+            ->count() + ($this->owner->role === UserRole::Band ? 1 : 0);
+
+        if ($confirmed < $bandSlots) {
+            $blockers[] = trans_choice(':confirmed of :count band confirmed.|:confirmed of :count bands confirmed.', $bandSlots, ['confirmed' => $confirmed, 'count' => $bandSlots]);
+        }
+
+        $pendingVenue = $this->bookingRequests()
+            ->awaitingReply()
+            ->whereRelation('recipient', 'role', UserRole::Venue)
+            ->with('recipient')
+            ->first();
+
+        if ($pendingVenue !== null) {
+            $blockers[] = __('Waiting for :venue to confirm.', ['venue' => $pendingVenue->recipient->displayName()]);
+        }
+
+        return $blockers;
+    }
+
+    public function isReadyToPublish(): bool
+    {
+        return $this->publishBlockers() === [];
     }
 
     /**

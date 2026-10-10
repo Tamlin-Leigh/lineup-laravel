@@ -1,5 +1,4 @@
 @php
-    use App\Enums\EventCategory;
     use App\Models\Event;
 
     $results = $this->results;
@@ -38,13 +37,6 @@
 
         <div class="flex flex-wrap items-center gap-2">
             <flux:input wire:model.live.debounce.300ms="search" type="search" icon="magnifying-glass" :placeholder="__('Search event, location, etc')" class="w-56" aria-label="{{ __('Search events') }}" />
-
-            <flux:select wire:model.live="category" class="w-44" aria-label="{{ __('Category') }}">
-                <flux:select.option value="">{{ __('All Categories') }}</flux:select.option>
-                @foreach (EventCategory::cases() as $option)
-                    <flux:select.option value="{{ $option->value }}">{{ $option->label() }}</flux:select.option>
-                @endforeach
-            </flux:select>
         </div>
     </div>
 
@@ -65,8 +57,8 @@
             </x-event-card>
         @empty
             <div class="rounded-2xl border border-zinc-200 bg-white p-8 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400">
-                @if ($search !== '' || $category !== '')
-                    {{ __('No events match your filters.') }}
+                @if ($search !== '')
+                    {{ __('No events match your search.') }}
                 @else
                     {{ __('No events here yet.') }}
                 @endif

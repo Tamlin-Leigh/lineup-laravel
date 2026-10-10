@@ -10,18 +10,6 @@
 
     @include('dashboard.upcoming-events')
 
-    <x-profile-section :title="__('Tags From Past Events')">
-        @if ($pastCategoryCounts->isNotEmpty())
-            <div class="flex flex-wrap gap-2">
-                @foreach ($pastCategoryCounts as $category => $count)
-                    <x-pill class="px-3 py-1">{{ $category }} &middot; {{ $count }}</x-pill>
-                @endforeach
-            </div>
-        @else
-            <flux:text>{{ __('No completed events yet.') }}</flux:text>
-        @endif
-    </x-profile-section>
-
     <x-profile-section :title="__('Your Band')">
         <p class="font-semibold text-zinc-900 dark:text-white">{{ $band->band_name }}</p>
         <flux:text>{{ trans_choice(':count member|:count members', $band->member_count) }} &middot; {{ $band->genre }}</flux:text>

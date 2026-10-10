@@ -1,7 +1,6 @@
 <?php
 
 use App\Actions\UpdateAvailability;
-use App\Enums\EventCategory;
 use App\Enums\EventStatus;
 use App\Livewire\Events\Calendar;
 use App\Livewire\Events\ManageEvent;
@@ -37,7 +36,6 @@ function hostedEventOn(string $date, string $status = 'published'): array
 {
     return [
         'form.title' => 'Our Own Show',
-        'form.category' => EventCategory::HeadlineShow->value,
         'form.location' => 'The Loft, Cape Town',
         'form.date' => $date,
         'form.time' => '20:00',
@@ -58,7 +56,7 @@ test('hosting an event takes the host off the free list for that day', function 
         ->assertHasNoErrors();
 
     expect(freeDatesOf($host))->toBe(['2026-10-18']);
-})->with(['band', 'venue', 'organiser'])->with([EventStatus::Published->value, EventStatus::Draft->value]);
+})->with(['band', 'venue', 'organiser'])->with([EventStatus::Draft->value]);
 
 test('moving an event to another day takes that day off the free list too', function () {
     $band = User::factory()->band()->create();
@@ -106,4 +104,16 @@ test('the calendar shows events you are booked for, linking to your bookings', f
         ->assertSeeHtml(route('events.edit', $own))
         ->assertSeeHtml(route('bookings.index'))
         ->assertDontSeeHtml(route('events.edit', $booked));
+});
+
+test('the calendar shows requests waiting for your reply', function () {
+    $band = User::factory()->band()->create();
+    $waiting = BookingRequest::factory()->for($band, 'recipient')
+        ->for(Event::factory()->state(['user_id' => User::factory()->venue(), 'title' => 'Open Mic', 'starts_at' => '2026-10-17 19:00']))
+        ->create();
+
+    Livewire::actingAs($band)
+        ->test(Calendar::class)
+        ->assertSeeHtml('data-test="calendar-request-'.$waiting->id.'"')
+        ->assertSee('Request waiting for your reply');
 });

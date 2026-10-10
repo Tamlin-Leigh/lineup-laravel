@@ -70,7 +70,6 @@ class BookingDemoSeeder extends Seeder
     {
         return Event::query()
             ->whereRelation('owner', 'email', $ownerEmail)
-            ->published()
             ->upcoming()
             ->first();
     }

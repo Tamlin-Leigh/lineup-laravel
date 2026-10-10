@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\BookingStatus;
-use App\Enums\EventCategory;
 use App\Enums\EventStatus;
 use App\Livewire\Events\ManageEvent;
 use App\Models\Availability;
@@ -39,12 +38,12 @@ function eventOn(string $date): array
 {
     return [
         'form.title' => 'Saturday Showcase',
-        'form.category' => EventCategory::HeadlineShow->value,
         'form.location' => 'Somewhere in Cape Town',
         'form.date' => $date,
         'form.time' => '20:00',
         'form.price' => '100',
-        'form.status' => EventStatus::Published->value,
+        'form.band_slots' => '5',
+        'form.status' => EventStatus::Draft->value,
     ];
 }
 

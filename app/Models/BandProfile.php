@@ -21,12 +21,15 @@ use Illuminate\Support\Carbon;
  * @property string $member_names
  * @property string $genre
  * @property string|null $bio
+ * @property int|null $booking_fee Whole rand (ZAR); null when the band hasn't set one.
+ * @property bool $accepts_door_split Open to playing for a share of the door or ticket sales.
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
 #[Fillable([
     'manager_name', 'manager_phone', 'manager_email',
     'band_name', 'member_count', 'member_names', 'genre', 'bio',
+    'booking_fee', 'accepts_door_split',
 ])]
 class BandProfile extends Model
 {
@@ -42,7 +45,22 @@ class BandProfile extends Model
     {
         return [
             'member_count' => 'integer',
+            'booking_fee' => 'integer',
+            'accepts_door_split' => 'boolean',
         ];
+    }
+
+    /**
+     * The band's terms in a few words for hosts picking bands, e.g. "R2,500 fee · Open to door splits".
+     */
+    public function bookingTerms(): string
+    {
+        $terms = array_filter([
+            $this->booking_fee !== null ? (string) __('R:fee fee', ['fee' => number_format($this->booking_fee)]) : null,
+            $this->accepts_door_split ? (string) __('Open to door / ticket splits') : null,
+        ]);
+
+        return $terms !== [] ? implode(' · ', $terms) : (string) __('Fee on request');
     }
 
     /**

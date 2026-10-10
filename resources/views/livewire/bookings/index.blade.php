@@ -71,7 +71,18 @@
     @if ($closed->isNotEmpty())
         <x-profile-section :title="__('History')">
             @foreach ($closed as $booking)
-                <x-booking-row :booking="$booking" :for="$tab" wire:key="closed-{{ $booking->id }}" />
+                <x-booking-row :booking="$booking" :for="$tab" wire:key="closed-{{ $booking->id }}">
+                    {{-- A decline or no-reply frees the slot: offer to ask someone else while there's still time. --}}
+                    @if ($tab === 'sent'
+                        && in_array($booking->currentStatus(), [App\Enums\BookingStatus::Declined, App\Enums\BookingStatus::Expired], true)
+                        && $user->can('sendBookingRequests', $booking->event))
+                        <x-slot:actions>
+                            <flux:button size="sm" :href="route('events.edit', $booking->event)" wire:navigate data-test="replace-booking-{{ $booking->id }}">
+                                {{ __('Find a replacement') }}
+                            </flux:button>
+                        </x-slot:actions>
+                    @endif
+                </x-booking-row>
             @endforeach
         </x-profile-section>
     @endif

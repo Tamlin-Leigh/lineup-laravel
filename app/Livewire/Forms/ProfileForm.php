@@ -69,6 +69,11 @@ class ProfileForm extends Form
 
     public string $bio = '';
 
+    /** Whole rand, or '' for none. */
+    public string $booking_fee = '';
+
+    public bool $accepts_door_split = false;
+
     // Links (band: music + social, organiser: social)
     /** @var list<array{platform: string, url: string}> */
     public array $music_links = [];
@@ -134,6 +139,8 @@ class ProfileForm extends Form
                 'member_names' => $band->member_names,
                 'genre' => $band->genre,
                 'bio' => (string) $band->bio,
+                'booking_fee' => (string) $band->booking_fee,
+                'accepts_door_split' => $band->accepts_door_split,
                 'music_links' => $this->linkRows($band->links, LinkKind::Music),
                 'social_links' => $this->linkRows($band->links, LinkKind::Social),
             ]);
@@ -230,6 +237,8 @@ class ProfileForm extends Form
                 'member_names' => ['required', 'string', 'max:1000'],
                 'genre' => ['required', 'string', 'max:255'],
                 'bio' => ['nullable', 'string', 'max:2000'],
+                'booking_fee' => ['nullable', 'integer', 'min:0', 'max:10000000'],
+                'accepts_door_split' => ['boolean'],
             ],
             'links' => [
                 ...$this->linkRules('music_links'),
@@ -300,6 +309,7 @@ class ProfileForm extends Form
             'min_door_charge' => __('minimum door charge'),
             'sound_engineer' => __('sound engineer'),
             'member_count' => __('number of members'),
+            'booking_fee' => __('booking fee'),
             'org_name' => __('organisation name'),
             'music_links' => __('music links'),
             'music_links.*.platform' => __('platform'),
