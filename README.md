@@ -18,7 +18,7 @@ Requires Docker Desktop. The host ports are set in `.env` (`APP_PORT=8080`, `FOR
 ```bash
 cp .env.example .env
 composer install
-docker compose up -d                                     # app, queue, scheduler, mysql, redis, mailpit, phpmyadmin
+docker compose up -d                                     # app, queue, scheduler, reverb, mysql, redis, mailpit, phpmyadmin
 docker compose exec -u sail laravel.test php artisan key:generate
 docker compose exec -u sail laravel.test php artisan migrate --seed
 npm install && npm run dev
@@ -26,6 +26,7 @@ npm install && npm run dev
 
 - App: http://localhost:8080
 - Mailpit (caught emails): http://localhost:8025
+- Reverb (real-time chat WebSockets): `ws://localhost:8085`, used by the browser automatically
 - phpMyAdmin: http://localhost:8081 (logs in as the `sail` user; only reachable from this machine)
 - MySQL from a GUI client: `127.0.0.1:3307`, user `sail`, password `password`, database `bandlink`
 
@@ -78,3 +79,8 @@ app was opened on `php artisan serve`'s port 8000). Use the container commands a
 (`C:\...`) very slowly. `docker/php/opcache.ini` turns on PHP's code cache for the dev server and only re-checks
 files every 2 seconds, which helps with quick bursts of clicks. For real speed, keep the project inside WSL2
 (e.g. `\wsl$\Ubuntu\home\<you>\bandlink-laravel`) and run Docker from there, as the Laravel Sail docs recommend.
+
+**Chat messages only appear after a refresh**: the browser isn't connected to Reverb. Check the `reverb`
+container is running (`docker compose ps reverb`, start it with `docker compose up -d reverb`) and that port 8085
+is free. After changing any `VITE_REVERB_*` value in `.env`, restart the Vite dev server (`npm run dev`), since
+Vite only reads `.env` when it starts.

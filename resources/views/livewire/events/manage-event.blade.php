@@ -126,7 +126,13 @@
                 @if ($this->bookingRequests->isNotEmpty())
                     <x-profile-section :title="__('Already Asked')">
                         @foreach ($this->bookingRequests as $booking)
-                            <x-booking-row :booking="$booking" for="sent" :show-event="false" wire:key="booking-{{ $booking->id }}" />
+                            <x-booking-row :booking="$booking" for="sent" :show-event="false" wire:key="booking-{{ $booking->id }}">
+                                @if ($booking->status === App\Enums\BookingStatus::Accepted)
+                                    <x-slot:actions>
+                                        <flux:button size="sm" icon="chat-bubble-left-right" :href="route('bookings.chat', $booking)" wire:navigate>{{ __('Message') }}</flux:button>
+                                    </x-slot:actions>
+                                @endif
+                            </x-booking-row>
                         @endforeach
                     </x-profile-section>
                 @endif

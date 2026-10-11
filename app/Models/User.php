@@ -8,6 +8,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -134,6 +135,24 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->receivedBookingRequests()->awaitingReply()->count()
             + $this->unreadNotifications()->where('type', '!=', BookingRequested::class)->count();
+    }
+
+    /**
+     * Messages in this user's booking chats they haven't seen: anything from the other side (or a
+     * BandLink note) posted since they last opened that chat.
+     */
+    public function unreadMessagesCount(): int
+    {
+        $unreadOn = fn (string $side) => fn (Builder $query) => $query
+            ->where($side.'_id', $this->id)
+            ->where(fn (Builder $query) => $query
+                ->whereNull($side.'_read_at')
+                ->orWhereColumn('messages.created_at', '>', 'conversations.'.$side.'_read_at'));
+
+        return Message::query()
+            ->where(fn (Builder $query) => $query->whereNull('user_id')->orWhere('user_id', '!=', $this->id))
+            ->whereHas('conversation', fn (Builder $query) => $query->where($unreadOn('owner'))->orWhere($unreadOn('recipient')))
+            ->count();
     }
 
     /**

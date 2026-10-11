@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\OpenBookingChatController;
 use App\Http\Controllers\PublicProfileController;
 use App\Livewire\Auth\Register;
 use App\Livewire\Bookings\Index as BookingIndex;
@@ -9,6 +10,7 @@ use App\Livewire\Discover;
 use App\Livewire\Events\Calendar;
 use App\Livewire\Events\Index as EventIndex;
 use App\Livewire\Events\ManageEvent;
+use App\Livewire\Messages\Index as MessagesIndex;
 use App\Livewire\Profile\EditProfile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -31,6 +33,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::livewire('calendar', Calendar::class)->name('calendar');
         Route::livewire('discover', Discover::class)->name('discover');
         Route::livewire('bookings', BookingIndex::class)->name('bookings.index');
+        Route::get('bookings/{booking}/chat', OpenBookingChatController::class)->name('bookings.chat');
+        Route::livewire('messages', MessagesIndex::class)->name('messages.index');
+        Route::livewire('messages/{conversation}', MessagesIndex::class)->name('messages.show');
     });
 
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
