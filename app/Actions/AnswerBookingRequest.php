@@ -6,12 +6,15 @@ use App\Enums\BookingStatus;
 use App\Enums\EventStatus;
 use App\Enums\UserRole;
 use App\Models\BookingRequest;
+use App\Models\Conversation;
 use App\Notifications\BookingAnswered;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class AnswerBookingRequest
 {
+    public function __construct(private SendMessage $messages) {}
+
     /**
      * The band or venue says yes: that day is no longer free on their calendar, and a venue
      * becomes the event's venue.
@@ -61,7 +64,26 @@ class AnswerBookingRequest
             }
         });
 
+        $this->openChat($booking);
+
         $event->owner->notify(new BookingAnswered($booking));
+    }
+
+    /**
+     * An accepted booking gets a private chat between the owner and the band or venue, opened with
+     * a note so both know what it's for. The one who accepted has seen it already.
+     */
+    private function openChat(BookingRequest $booking): void
+    {
+        $conversation = Conversation::forBooking($booking);
+
+        $this->messages->handle($conversation, null, __(':name accepted the booking request for :event on :date. Use this chat to sort out set times, soundcheck, fees and anything else.', [
+            'name' => $booking->recipient->displayName(),
+            'event' => $booking->event->title,
+            'date' => $booking->event->starts_at->format('D j M Y'),
+        ]));
+
+        $conversation->markReadFor($booking->recipient);
     }
 
     /**

@@ -62,7 +62,11 @@
 
     <x-profile-section :title="__('Confirmed')">
         @forelse ($confirmed as $booking)
-            <x-booking-row :booking="$booking" :for="$tab" wire:key="confirmed-{{ $booking->id }}" />
+            <x-booking-row :booking="$booking" :for="$tab" wire:key="confirmed-{{ $booking->id }}">
+                <x-slot:actions>
+                    <flux:button size="sm" icon="chat-bubble-left-right" :href="route('bookings.chat', $booking)" wire:navigate data-test="message-booking-{{ $booking->id }}">{{ __('Message') }}</flux:button>
+                </x-slot:actions>
+            </x-booking-row>
         @empty
             <flux:text>{{ __('No confirmed bookings coming up.') }}</flux:text>
         @endforelse

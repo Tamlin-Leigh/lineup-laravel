@@ -38,6 +38,8 @@
                             {{ __('Bookings') }}
                         </flux:sidebar.item>
 
+                        <livewire:messages.sidebar-link />
+
                         <flux:sidebar.item icon="user-circle" :href="route('profile.show')" :current="request()->routeIs('profile.show')" wire:navigate>
                             {{ __('Profile') }}
                         </flux:sidebar.item>
