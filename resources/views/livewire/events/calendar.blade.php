@@ -62,7 +62,22 @@
             </div>
         @endif
 
-        <div class="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
+        {{--
+            Marking a day free (or clearing it) shows straight away: the click flips the day's data-free
+            in the browser, then saves. The re-render that follows sets data-free back to what the server
+            saved, so a day it refused (e.g. booked in the meantime) flips back by itself.
+        --}}
+        <div
+            class="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900"
+            x-data="{
+                flip(day, date) {
+                    const free = day.dataset.free !== 'true'
+                    day.dataset.free = free
+                    day.setAttribute('aria-pressed', free)
+                    $wire.toggleDay(date)
+                },
+            }"
+        >
             <div class="grid grid-cols-7 border-b border-zinc-200 bg-brand-tertiary/15 dark:border-zinc-700 dark:bg-zinc-800">
                 @foreach (['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as $weekday)
                     <div class="px-2 py-2.5 text-center text-xs font-bold tracking-wide text-zinc-500 uppercase dark:text-zinc-400">{{ __($weekday) }}</div>
@@ -80,18 +95,20 @@
                         @endphp
 
                         <div
+                            data-free="{{ $isFree ? 'true' : 'false' }}"
                             @if ($isToggleable)
                                 role="button"
                                 tabindex="0"
-                                wire:click="toggleDay('{{ $key }}')"
-                                wire:keydown.enter="toggleDay('{{ $key }}')"
+                                x-on:click="flip($el, '{{ $key }}')"
+                                x-on:keydown.enter.prevent="flip($el, '{{ $key }}')"
                                 aria-pressed="{{ $isFree ? 'true' : 'false' }}"
-                                aria-label="{{ $day->format('j F') }}: {{ $isFree ? __('free, click to clear') : __('click to mark free') }}"
+                                aria-label="{{ $day->format('j F') }}: {{ __('click to mark free or clear') }}"
                                 wire:key="day-{{ $key }}"
+                                data-test="calendar-day-{{ $key }}"
                             @endif
                             @class([
-                                'min-h-24 border-e border-b border-zinc-200 p-1.5 last:border-e-0 sm:p-2 dark:border-zinc-700',
-                                'bg-emerald-50 dark:bg-emerald-950/40' => $isFree,
+                                'group min-h-24 border-e border-b border-zinc-200 p-1.5 last:border-e-0 sm:p-2 dark:border-zinc-700',
+                                'data-[free=true]:bg-emerald-50 dark:data-[free=true]:bg-emerald-950/40',
                                 'cursor-pointer hover:bg-emerald-100/70 dark:hover:bg-emerald-900/40' => $isToggleable,
                                 'opacity-50' => $day && $markingAvailability && ! $isToggleable,
                             ])
@@ -105,9 +122,7 @@
                                             'text-zinc-900 dark:text-white' => $key !== $todayKey,
                                         ])>{{ $day->day }}</span>
 
-                                        @if ($isFree)
-                                            <span class="hidden truncate text-[10px] font-bold tracking-wide text-emerald-700 uppercase sm:inline dark:text-emerald-300">{{ __('Free') }}</span>
-                                        @endif
+                                        <span class="hidden truncate text-[10px] font-bold tracking-wide text-emerald-700 uppercase sm:group-data-[free=true]:inline dark:text-emerald-300">{{ __('Free') }}</span>
                                     </div>
 
                                     @foreach ($eventsByDay->get($key, []) as $event)

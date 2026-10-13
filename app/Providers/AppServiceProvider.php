@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\VenueProfile;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Foundation\Console\ServeCommand;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
@@ -20,7 +21,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // `artisan serve` (the Sail dev server) only hands a fixed list of environment variables to the
+        // PHP server it starts; docker/php/opcache.ini reads this one.
+        ServeCommand::$passthroughVariables[] = 'PHP_OPCACHE_REVALIDATE_FREQ';
     }
 
     /**

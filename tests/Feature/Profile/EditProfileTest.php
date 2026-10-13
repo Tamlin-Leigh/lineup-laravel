@@ -102,9 +102,7 @@ test('an organiser can replace their links', function () {
         ->test(EditProfile::class)
         ->call('edit')
         ->assertCount('form.social_links', 1)
-        ->call('removeLink', 'social_links', 0)
-        ->call('addLink', 'social_links')
-        ->set('form.social_links.0.url', 'https://instagram.com/new')
+        ->set('form.social_links', [['platform' => LinkPlatform::Instagram->value, 'url' => 'https://instagram.com/new']])
         ->call('save')
         ->assertHasNoErrors();
 
@@ -121,8 +119,7 @@ test('a venue can add social links', function () {
         ->test(EditProfile::class)
         ->assertSee('Links')
         ->call('edit')
-        ->call('addLink', 'social_links')
-        ->set('form.social_links.0', ['platform' => LinkPlatform::Facebook->value, 'url' => 'https://facebook.com/thevenue'])
+        ->set('form.social_links', [['platform' => LinkPlatform::Facebook->value, 'url' => 'https://facebook.com/thevenue']])
         ->call('save')
         ->assertHasNoErrors();
 
@@ -172,8 +169,7 @@ test('saving one kind of link leaves the other kind alone', function () {
     Livewire::actingAs($user)
         ->test(EditProfile::class)
         ->call('edit')
-        ->call('addLink', 'music_links')
-        ->set('form.music_links.0.url', 'https://bandcamp.com/x')
+        ->set('form.music_links', [['platform' => LinkPlatform::Bandcamp->value, 'url' => 'https://bandcamp.com/x']])
         ->call('save')
         ->assertHasNoErrors();
 
@@ -303,15 +299,16 @@ test('every platform has an icon and a colour', function (LinkPlatform $platform
     }
 })->with(LinkPlatform::cases());
 
-test('the link editor shows the icon for the chosen platform', function () {
+test('the link editor draws its rows in the browser, with an icon per platform', function () {
     $html = Livewire::actingAs(User::factory()->band()->create())
         ->test(EditProfile::class)
         ->call('edit')
-        ->call('addLink', 'music_links')
         ->html();
 
     expect($html)
-        ->toContain('form.music_links.0.platform')
+        ->toContain('data-test="link-repeater-music_links"')
+        ->toContain('x-model="link.platform"')
+        ->not->toContain('wire:click="addLink')
         ->toContain('<title>Spotify</title>')
         ->toContain('<title>Bandcamp</title>');
 });

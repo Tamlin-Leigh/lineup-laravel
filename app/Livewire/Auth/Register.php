@@ -6,7 +6,6 @@ use App\Actions\RegisterUser;
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
 use App\Enums\UserRole;
-use App\Livewire\Concerns\InteractsWithProfileForm;
 use App\Livewire\Forms\ProfileForm;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
@@ -28,7 +27,7 @@ use Livewire\Component;
 #[Title('Create account')]
 class Register extends Component
 {
-    use InteractsWithProfileForm, PasswordValidationRules, ProfileValidationRules;
+    use PasswordValidationRules, ProfileValidationRules;
 
     private const STEP_LABELS = [
         'account' => 'Account Details',
