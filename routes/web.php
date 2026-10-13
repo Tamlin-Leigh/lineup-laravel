@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OpenBookingChatController;
 use App\Http\Controllers\PublicProfileController;
+use App\Http\Controllers\VerifyEmailController;
 use App\Livewire\Auth\Register;
 use App\Livewire\Bookings\Index as BookingIndex;
 use App\Livewire\Discover;
@@ -20,6 +21,12 @@ Route::get('/', fn () => redirect()->route(Auth::check() ? 'dashboard' : 'login'
 
 // Replaces Fortify's single-page registration (disabled in config/fortify.php).
 Route::livewire('register', Register::class)->middleware('guest')->name('register');
+
+// Overrides Fortify's route of the same URI and name, so expired or wrong-account links redirect
+// with a message instead of a 403. The signature is checked in the controller rather than by middleware.
+Route::get('email/verify/{id}/{hash}', VerifyEmailController::class)
+    ->middleware(['auth', 'throttle:6,1'])
+    ->name('verification.verify');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
