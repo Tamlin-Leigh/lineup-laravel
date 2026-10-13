@@ -78,3 +78,102 @@ test('already verified user visiting verification link is redirected without fir
     expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
     Event::assertNotDispatched(Verified::class);
 });
+
+test('expired link sends the user back to the prompt to request a new one', function () {
+    $user = User::factory()->unverified()->create();
+
+    $verificationUrl = URL::temporarySignedRoute(
+        'verification.verify',
+        now()->subMinute(),
+        ['id' => $user->id, 'hash' => sha1($user->email)],
+    );
+
+    $this->actingAs($user)->get($verificationUrl)
+        ->assertRedirect(route('verification.notice'))
+        ->assertSessionHas('status', 'verification-link-expired');
+
+    expect($user->fresh()->hasVerifiedEmail())->toBeFalse();
+});
+
+test('expired link for an already verified user just continues to the dashboard', function () {
+    $user = User::factory()->create();
+
+    $verificationUrl = URL::temporarySignedRoute(
+        'verification.verify',
+        now()->subMinute(),
+        ['id' => $user->id, 'hash' => sha1($user->email)],
+    );
+
+    $this->actingAs($user)->get($verificationUrl)
+        ->assertRedirect(route('dashboard', absolute: false).'?verified=1');
+});
+
+test('opening a link while logged in as another account logs out and returns to it after login', function () {
+    $owner = User::factory()->unverified()->create();
+    $other = User::factory()->create();
+
+    $verificationUrl = URL::temporarySignedRoute(
+        'verification.verify',
+        now()->addMinutes(60),
+        ['id' => $owner->id, 'hash' => sha1($owner->email)],
+    );
+
+    $this->actingAs($other)->get($verificationUrl)
+        ->assertRedirect(route('login'))
+        ->assertSessionHas('status', fn (string $status) => str_contains($status, $owner->email))
+        ->assertSessionHas('url.intended', $verificationUrl);
+
+    $this->assertGuest();
+    expect($owner->fresh()->hasVerifiedEmail())->toBeFalse();
+
+    $this->post(route('login.store'), ['email' => $owner->email, 'password' => 'password'])
+        ->assertRedirect($verificationUrl);
+
+    $this->get($verificationUrl)->assertRedirect(route('dashboard', absolute: false).'?verified=1');
+
+    expect($owner->fresh()->hasVerifiedEmail())->toBeTrue();
+});
+
+test('expired link opened as another account logs out without returning to it', function () {
+    $owner = User::factory()->unverified()->create();
+    $other = User::factory()->create();
+
+    $verificationUrl = URL::temporarySignedRoute(
+        'verification.verify',
+        now()->subMinute(),
+        ['id' => $owner->id, 'hash' => sha1($owner->email)],
+    );
+
+    $this->actingAs($other)->get($verificationUrl)
+        ->assertRedirect(route('login'))
+        ->assertSessionMissing('url.intended');
+
+    $this->assertGuest();
+});
+
+test('link with a tampered signature is still treated as expired, not verified', function () {
+    $user = User::factory()->unverified()->create();
+
+    $verificationUrl = URL::temporarySignedRoute(
+        'verification.verify',
+        now()->addMinutes(60),
+        ['id' => $user->id, 'hash' => sha1($user->email)],
+    );
+
+    $this->actingAs($user)->get($verificationUrl.'0')
+        ->assertRedirect(route('verification.notice'));
+
+    expect($user->fresh()->hasVerifiedEmail())->toBeFalse();
+});
+
+test('invalid hash with a valid signature is forbidden', function () {
+    $user = User::factory()->unverified()->create();
+
+    $verificationUrl = URL::temporarySignedRoute(
+        'verification.verify',
+        now()->addMinutes(60),
+        ['id' => $user->id, 'hash' => sha1('wrong-email')],
+    );
+
+    $this->actingAs($user)->get($verificationUrl)->assertForbidden();
+});

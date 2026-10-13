@@ -6,7 +6,7 @@
     $venue = $user->venueProfile;
     $band = $user->bandProfile;
     $organiser = $user->organiserProfile;
-    $links = ($band ?? $organiser)?->links ?? collect();
+    $links = ($band ?? $organiser ?? $venue)?->links ?? collect();
     $members = str($band?->member_names)->explode(',')->map(fn ($name) => trim($name))->filter();
 @endphp
 

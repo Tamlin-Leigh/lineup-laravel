@@ -74,7 +74,7 @@ class ProfileForm extends Form
 
     public bool $accepts_door_split = false;
 
-    // Links (band: music + social, organiser: social)
+    // Links (band: music + social, venue and organiser: social)
     /** @var list<array{platform: string, url: string}> */
     public array $music_links = [];
 
@@ -126,6 +126,7 @@ class ProfileForm extends Form
                 'has_own_equipment' => $venue->has_own_equipment,
                 'equipment_details' => (string) $venue->equipment_details,
                 'event_days' => $venue->event_days->map(fn (EventDay $day) => $day->value)->values()->all(),
+                'social_links' => $this->linkRows($venue->links, LinkKind::Social),
             ]);
         }
 
@@ -175,30 +176,6 @@ class ProfileForm extends Form
         return $this->validate($rules);
     }
 
-    public function addLink(string $field): void
-    {
-        $kind = self::LINK_FIELDS[$field] ?? null;
-
-        if ($kind === null || count($this->{$field}) >= self::MAX_LINKS) {
-            return;
-        }
-
-        $this->{$field}[] = ['platform' => $kind->platforms()[0]->value, 'url' => ''];
-    }
-
-    public function removeLink(string $field, int $index): void
-    {
-        if (! array_key_exists($field, self::LINK_FIELDS)) {
-            return;
-        }
-
-        $links = $this->{$field};
-        unset($links[$index]);
-        $this->{$field} = array_values($links);
-
-        $this->resetErrorBag();
-    }
-
     /**
      * @return array<string, mixed>
      */
@@ -226,6 +203,7 @@ class ProfileForm extends Form
                 'sound_engineer_name' => ['nullable', 'required_if:sound_engineer,'.SoundEngineer::InHouse->value, 'string', 'max:255'],
                 'has_own_equipment' => ['required', 'boolean'],
                 'equipment_details' => ['nullable', 'string', 'max:2000'],
+                ...$this->linkRules('social_links'),
             ],
             'event-days' => [
                 'event_days' => ['required', 'array', 'min:1'],

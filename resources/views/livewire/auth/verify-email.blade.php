@@ -11,6 +11,12 @@
             </flux:text>
         @endif
 
+        @if (session('status') == 'verification-link-expired')
+            <flux:text class="text-center font-medium text-red-600!">
+                {{ __('That verification link has expired. Send yourself a new one below.') }}
+            </flux:text>
+        @endif
+
         <div class="flex flex-col items-center justify-between space-y-3">
             <form method="POST" action="{{ route('verification.send') }}" class="w-full">
                 @csrf

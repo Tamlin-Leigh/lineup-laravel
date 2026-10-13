@@ -18,11 +18,14 @@ class EventPolicy
     }
 
     /**
-     * Published events are public; drafts and cancelled events only to their owner (and admins).
+     * Published events are public; drafts and cancelled events only to their owner (and admins), and
+     * to the bands and venues asked to take part, so they can see what they're agreeing to.
      */
     public function view(User $user, Event $event): bool
     {
-        return $event->status === EventStatus::Published || $this->update($user, $event);
+        return $event->status === EventStatus::Published
+            || $this->update($user, $event)
+            || $event->bookingRequests()->where('recipient_id', $user->id)->exists();
     }
 
     public function update(User $user, Event $event): bool

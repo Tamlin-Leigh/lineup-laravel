@@ -1,6 +1,7 @@
 {{--
     One booking request. On a received request (`for="received"`) you see whose event it is; on a
-    sent one (`for="sent"`) you see the band or venue you asked. Put buttons in the `actions` slot.
+    sent one (`for="sent"`) you see the band or venue you asked. With `showEvent` it also names the
+    event and links to its details. Put buttons in the `actions` slot.
 --}}
 @props(['booking', 'for' => 'received', 'showEvent' => true])
 
@@ -34,6 +35,9 @@
             <span class="text-xs text-zinc-500" title="{{ $booking->expires_at->format('D j M Y, H:i') }}">
                 {{ __('Reply by :date', ['date' => $booking->expires_at->format('D j M, H:i')]) }}
             </span>
+        @endif
+        @if ($showEvent)
+            <flux:button size="sm" variant="ghost" icon="eye" :href="route('events.show', $event)" wire:navigate data-test="view-event-{{ $booking->id }}">{{ __('View event') }}</flux:button>
         @endif
         {{ $actions ?? '' }}
     </div>
