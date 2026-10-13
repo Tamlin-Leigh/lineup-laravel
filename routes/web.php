@@ -11,6 +11,7 @@ use App\Livewire\Discover;
 use App\Livewire\Events\Calendar;
 use App\Livewire\Events\Index as EventIndex;
 use App\Livewire\Events\ManageEvent;
+use App\Livewire\Events\Show as EventShow;
 use App\Livewire\Messages\Index as MessagesIndex;
 use App\Livewire\Profile\EditProfile;
 use Illuminate\Support\Facades\Auth;
@@ -36,6 +37,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('role:venue,band,organiser')->group(function () {
         Route::livewire('events', EventIndex::class)->name('events.index');
         Route::livewire('events/create', ManageEvent::class)->name('events.create');
+        Route::livewire('events/{event}', EventShow::class)->whereNumber('event')->name('events.show');
         Route::livewire('events/{event}/edit', ManageEvent::class)->name('events.edit');
         Route::livewire('calendar', Calendar::class)->name('calendar');
         Route::livewire('discover', Discover::class)->name('discover');

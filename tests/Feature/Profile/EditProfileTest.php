@@ -114,6 +114,56 @@ test('an organiser can replace their links', function () {
         ->url->toBe('https://instagram.com/new');
 });
 
+test('a venue can add social links', function () {
+    $user = User::factory()->venue()->create();
+
+    Livewire::actingAs($user)
+        ->test(EditProfile::class)
+        ->assertSee('Links')
+        ->call('edit')
+        ->call('addLink', 'social_links')
+        ->set('form.social_links.0', ['platform' => LinkPlatform::Facebook->value, 'url' => 'https://facebook.com/thevenue'])
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($user->venueProfile->links()->sole())
+        ->kind->toBe(LinkKind::Social)
+        ->platform->toBe(LinkPlatform::Facebook)
+        ->url->toBe('https://facebook.com/thevenue');
+
+    Livewire::actingAs($user->fresh())
+        ->test(EditProfile::class)
+        ->assertSet('form.social_links', [['platform' => LinkPlatform::Facebook->value, 'url' => 'https://facebook.com/thevenue']]);
+});
+
+test('a venue cannot add music links', function () {
+    $user = User::factory()->venue()->create();
+
+    Livewire::actingAs($user)
+        ->test(EditProfile::class)
+        ->call('edit')
+        ->set('form.social_links', [['platform' => LinkPlatform::Spotify->value, 'url' => 'https://open.spotify.com/x']])
+        ->call('save')
+        ->assertHasErrors('form.social_links.0.platform')
+        ->assertSet('tab', 'links');
+
+    expect($user->venueProfile->links()->count())->toBe(0);
+});
+
+test('venue links show on its public profile', function () {
+    $venue = User::factory()->venue()->create();
+    Link::factory()->for($venue->venueProfile, 'linkable')->create([
+        'kind' => LinkKind::Social,
+        'platform' => LinkPlatform::Instagram,
+        'url' => 'https://instagram.com/thevenue',
+    ]);
+
+    $this->actingAs(User::factory()->band()->create())
+        ->get(route('profiles.show', $venue))
+        ->assertOk()
+        ->assertSee('https://instagram.com/thevenue');
+});
+
 test('saving one kind of link leaves the other kind alone', function () {
     $user = User::factory()->band()->create();
     $band = $user->bandProfile;
@@ -201,7 +251,7 @@ test('every role gets the same tabbed profile, with the tabs for its profile', f
         $component->assertSeeHtml('data-test="profile-tab-'.$tab.'"');
     }
 })->with([
-    'venue' => ['venue', ['account', 'venue', 'manager', 'event-days']],
+    'venue' => ['venue', ['account', 'venue', 'manager', 'event-days', 'links']],
     'band' => ['band', ['account', 'band', 'members', 'manager', 'links']],
     'organiser' => ['organiser', ['account', 'organiser', 'links']],
 ]);

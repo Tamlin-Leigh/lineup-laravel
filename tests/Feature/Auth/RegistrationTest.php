@@ -142,6 +142,8 @@ test('a venue can register', function () {
             'form.has_own_equipment' => true,
             'form.equipment_details' => 'PA and drum kit',
         ])
+        ->call('addLink', 'social_links')
+        ->set('form.social_links.0', ['platform' => LinkPlatform::Instagram->value, 'url' => 'https://instagram.com/longstreet'])
         ->call('next')
         ->assertHasNoErrors()
         ->set('form.event_days', [EventDay::Weekend->value])
@@ -162,7 +164,11 @@ test('a venue can register', function () {
         ->sound_engineer_name->toBe('Alex')
         ->has_own_equipment->toBeTrue()
         ->equipment_details->toBe('PA and drum kit')
-        ->and($user->venueProfile->event_days->all())->toBe([EventDay::Weekend]);
+        ->and($user->venueProfile->event_days->all())->toBe([EventDay::Weekend])
+        ->and($user->venueProfile->links()->sole())
+        ->kind->toBe(LinkKind::Social)
+        ->platform->toBe(LinkPlatform::Instagram)
+        ->url->toBe('https://instagram.com/longstreet');
 
     $this->assertAuthenticatedAs($user);
     Event::assertDispatched(Registered::class);

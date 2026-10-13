@@ -8,6 +8,7 @@ use App\Enums\UserRole;
 use App\Models\BandProfile;
 use App\Models\OrganiserProfile;
 use App\Models\User;
+use App\Models\VenueProfile;
 use InvalidArgumentException;
 
 /**
@@ -37,7 +38,7 @@ class SaveProfile
         $soundEngineer = SoundEngineer::from($input['sound_engineer']);
         $hasOwnEquipment = (bool) $input['has_own_equipment'];
 
-        $user->venueProfile()->updateOrCreate([], [
+        $profile = $user->venueProfile()->updateOrCreate([], [
             'manager_name' => $input['manager_name'],
             'manager_phone' => $input['manager_phone'],
             'manager_email' => $input['manager_email'],
@@ -50,6 +51,8 @@ class SaveProfile
             'equipment_details' => $hasOwnEquipment ? (($input['equipment_details'] ?? '') ?: null) : null,
             'event_days' => array_values(array_unique($input['event_days'])),
         ]);
+
+        $this->syncLinks($profile, LinkKind::Social, $input['social_links'] ?? []);
     }
 
     /**
@@ -93,7 +96,7 @@ class SaveProfile
      *
      * @param  list<array{platform: string, url: string}>  $links
      */
-    private function syncLinks(BandProfile|OrganiserProfile $profile, LinkKind $kind, array $links): void
+    private function syncLinks(BandProfile|OrganiserProfile|VenueProfile $profile, LinkKind $kind, array $links): void
     {
         $profile->links()->where('kind', $kind)->delete();
 

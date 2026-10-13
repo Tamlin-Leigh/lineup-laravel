@@ -108,6 +108,7 @@
                 <flux:text>{{ __('Tell us about your venue') }}</flux:text>
 
                 @include('partials.profile-fields.venue')
+                @include('partials.profile-fields.links', ['socialOnly' => true])
                 @break
 
             @case('event-days')

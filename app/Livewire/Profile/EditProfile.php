@@ -135,6 +135,7 @@ class EditProfile extends Component
                 'venue' => __('Venue Details'),
                 'manager' => __('Manager'),
                 'event-days' => __('Event Preferences'),
+                'links' => __('Links'),
             ],
             UserRole::Band => [
                 'band' => __('Band Profile'),

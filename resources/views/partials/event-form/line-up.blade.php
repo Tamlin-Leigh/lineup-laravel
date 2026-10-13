@@ -1,6 +1,7 @@
 {{--
     Who is playing, how many bands the event needs, then the bands free on the date to ask. Ticking
-    stops once the open band slots are used up (the server checks the same limit on save).
+    stops once the open band slots are used up, and lowering the number of bands unticks the latest
+    picks that no longer fit (the server checks the same limit on save).
 --}}
 @php $taken = $this->takenBandSlots(); @endphp
 
@@ -12,6 +13,13 @@
         taken: {{ $taken }},
         open() { return Math.max(0, (parseInt($wire.form.band_slots) || 0) - this.taken) },
         left() { return Math.max(0, this.open() - $wire.bandIds.length) },
+        picked(id) { return $wire.bandIds.map(String).includes(String(id)) },
+        // Runs once the number is committed (not per keystroke, so typing 12 doesn't pass through 1).
+        fitPicks() {
+            if (parseInt($wire.form.band_slots) > 0 && $wire.bandIds.length > this.open()) {
+                $wire.bandIds = $wire.bandIds.slice(0, this.open())
+            }
+        },
     }"
 >
     <x-slot:heading>
@@ -31,6 +39,7 @@
             max="{{ App\Livewire\Forms\EventForm::MAX_BAND_SLOTS }}"
             step="1"
             :label="__('Bands playing')"
+            x-on:change="fitPicks()"
             required
             data-test="band-slots"
         />

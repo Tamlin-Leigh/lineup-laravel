@@ -51,3 +51,7 @@
         @endif
     </x-profile-section>
 </x-profile-tab>
+
+<x-profile-tab name="links" :active="$active">
+    @include('profile.partials.links', ['profile' => $venue, 'socialOnly' => true])
+</x-profile-tab>
