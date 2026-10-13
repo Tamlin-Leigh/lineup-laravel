@@ -28,6 +28,24 @@ test('clicking days in marking mode toggles them', function () {
         ->assertSet('freeDays', ['2026-10-09' => true]);
 });
 
+test('days flip in the browser first, and the re-render carries what was saved', function () {
+    $user = User::factory()->band()->create();
+
+    $component = Livewire::actingAs($user)
+        ->test(Calendar::class)
+        ->set('markingAvailability', true)
+        ->assertSeeHtml("x-on:click=\"flip(\$el, '2026-10-09')\"")
+        ->assertDontSeeHtml('wire:click="toggleDay');
+
+    $day = fn () => str($component->html())->match('/<div\s+data-free="(true|false)"[^>]*data-test="calendar-day-2026-10-09"/s')->toString();
+
+    expect($day())->toBe('false');
+
+    $component->call('toggleDay', '2026-10-09');
+
+    expect($day())->toBe('true');
+});
+
 test('malformed or past dates are ignored', function () {
     $user = User::factory()->band()->create();
 

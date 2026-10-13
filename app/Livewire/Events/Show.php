@@ -15,6 +15,9 @@ use Livewire\Component;
 /**
  * An event's details, read-only. Bands and venues open it from a booking request to see what
  * they're being asked to join, and can accept or decline from here too.
+ *
+ * @property-read Collection<int, User> $lineUp
+ * @property-read BookingRequest|null $booking
  */
 class Show extends Component
 {

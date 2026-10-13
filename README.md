@@ -77,8 +77,43 @@ app was opened on `php artisan serve`'s port 8000). Use the container commands a
 
 **Pages are slow on Windows (a second or more per click)**: Docker reads the project from the Windows drive
 (`C:\...`) very slowly. `docker/php/opcache.ini` turns on PHP's code cache for the dev server and only re-checks
-files every 2 seconds, which helps with quick bursts of clicks. For real speed, keep the project inside WSL2
-(e.g. `\wsl$\Ubuntu\home\<you>\bandlink-laravel`) and run Docker from there, as the Laravel Sail docs recommend.
+files every 2 seconds, which helps with quick bursts of clicks, but the first click after a pause still takes
+1.5–2 seconds. The fix is to keep the project inside WSL2, as the Laravel Sail docs recommend; see
+[Running from WSL (Windows)](#running-from-wsl-windows).
+
+## Running from WSL (Windows)
+
+On Windows, keep the project in the WSL2 Linux filesystem rather than on `C:\`: requests drop from ~0.3–2s
+to well under 0.1s. You need a WSL distro (e.g. Ubuntu, `wsl -l -v` lists them) and, in Docker Desktop,
+**Settings → Resources → WSL integration** switched on for it. Then, in an Ubuntu terminal:
+
+```bash
+# 1. Stop the copy on the Windows drive (its database and Redis data stay in Docker volumes).
+cd "/mnt/c/Users/<you>/<path to>/bandlink-laravel" && docker compose down
+
+# 2. Clone into your Linux home and bring your .env across.
+cd ~ && git clone https://github.com/Tamlin-Leigh/bandlink-laravel.git && cd bandlink-laravel
+cp "/mnt/c/Users/<you>/<path to>/bandlink-laravel/.env" .
+echo "PHP_OPCACHE_REVALIDATE_FREQ=0" >> .env   # file checks are cheap here: edits show up on the next request
+
+# 3. Install PHP packages without needing PHP in WSL, then start everything.
+docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd):/var/www/html" -w /var/www/html \
+    laravelsail/php84-composer:latest composer install --ignore-platform-reqs
+docker compose up -d
+
+# 4. Bring across uploaded profile photos (not in git) and link them into public/.
+cp -r "/mnt/c/Users/<you>/<path to>/bandlink-laravel/storage/app/public/." storage/app/public/
+docker compose exec -u sail laravel.test php artisan storage:link
+
+# 5. Front end (needs Node in WSL, e.g. via nvm), then open the folder in VS Code.
+npm install && npm run dev
+code .
+```
+
+The folder keeps the name `bandlink-laravel`, so Docker Compose reuses the same `sail-mysql` and `sail-redis`
+volumes: your data, accounts and seeded demo data carry over without re-migrating. `code .` opens VS Code
+through its **WSL** extension (it offers to install it); from then on, use the terminal inside VS Code, which
+runs in Ubuntu. Once everything works, the copy on the Windows drive can be deleted.
 
 **Chat messages only appear after a refresh**: the browser isn't connected to Reverb. Check the `reverb`
 container is running (`docker compose ps reverb`, start it with `docker compose up -d reverb`) and that port 8085

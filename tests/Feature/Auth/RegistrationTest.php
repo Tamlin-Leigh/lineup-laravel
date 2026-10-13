@@ -142,8 +142,7 @@ test('a venue can register', function () {
             'form.has_own_equipment' => true,
             'form.equipment_details' => 'PA and drum kit',
         ])
-        ->call('addLink', 'social_links')
-        ->set('form.social_links.0', ['platform' => LinkPlatform::Instagram->value, 'url' => 'https://instagram.com/longstreet'])
+        ->set('form.social_links', [['platform' => LinkPlatform::Instagram->value, 'url' => 'https://instagram.com/longstreet']])
         ->call('next')
         ->assertHasNoErrors()
         ->set('form.event_days', [EventDay::Weekend->value])
@@ -220,10 +219,8 @@ test('a band can register with music and social links', function () {
         ])
         ->call('next')
         ->assertHasNoErrors()
-        ->call('addLink', 'music_links')
-        ->set('form.music_links.0', ['platform' => LinkPlatform::Spotify->value, 'url' => 'https://open.spotify.com/artist/1'])
-        ->call('addLink', 'social_links')
-        ->set('form.social_links.0', ['platform' => LinkPlatform::Instagram->value, 'url' => 'https://instagram.com/loudones'])
+        ->set('form.music_links', [['platform' => LinkPlatform::Spotify->value, 'url' => 'https://open.spotify.com/artist/1']])
+        ->set('form.social_links', [['platform' => LinkPlatform::Instagram->value, 'url' => 'https://instagram.com/loudones']])
         ->call('next')
         ->assertHasNoErrors()
         ->assertRedirect(route('dashboard', absolute: false));
@@ -253,16 +250,6 @@ test('links must be real urls on a platform that fits their kind', function () {
     expect(User::count())->toBe(0);
 });
 
-test('removing a link drops it from the list', function () {
-    registerAs(UserRole::Band)
-        ->call('addLink', 'music_links')
-        ->call('addLink', 'music_links')
-        ->set('form.music_links.1.url', 'https://example.com/keep')
-        ->call('removeLink', 'music_links', 0)
-        ->assertCount('form.music_links', 1)
-        ->assertSet('form.music_links.0.url', 'https://example.com/keep');
-});
-
 test('an organiser can register', function () {
     registerAs(UserRole::Organiser)
         ->set([
@@ -270,8 +257,7 @@ test('an organiser can register', function () {
             'form.contact_number' => '0211234567',
             'form.contact_email' => 'hello@gigco.test',
         ])
-        ->call('addLink', 'social_links')
-        ->set('form.social_links.0.url', 'https://instagram.com/gigco')
+        ->set('form.social_links', [['platform' => LinkPlatform::Instagram->value, 'url' => 'https://instagram.com/gigco']])
         ->call('next')
         ->assertHasNoErrors()
         ->assertRedirect(route('dashboard', absolute: false));

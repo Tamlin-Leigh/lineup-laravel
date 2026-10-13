@@ -14,6 +14,8 @@ services:
         environment:
             WWWUSER: '${WWWUSER}'
             LARAVEL_SAIL: 1
+            # Seconds between OPcache checks for changed PHP files (see docker/php/opcache.ini).
+            PHP_OPCACHE_REVALIDATE_FREQ: '${PHP_OPCACHE_REVALIDATE_FREQ:-2}'
             XDEBUG_MODE: '${SAIL_XDEBUG_MODE:-off}'
             XDEBUG_CONFIG: '${SAIL_XDEBUG_CONFIG:-client_host=host.docker.internal}'
             IGNITION_LOCAL_SITES_PATH: '${PWD}'
@@ -36,6 +38,8 @@ services:
         environment:
             WWWUSER: '${WWWUSER}'
             LARAVEL_SAIL: 1
+            # Seconds between OPcache checks for changed PHP files (see docker/php/opcache.ini).
+            PHP_OPCACHE_REVALIDATE_FREQ: '${PHP_OPCACHE_REVALIDATE_FREQ:-2}'
         volumes:
             - '.:/var/www/html'
             - './docker/php/opcache.ini:/etc/php/8.4/cli/conf.d/99-opcache.ini:ro'
@@ -54,6 +58,8 @@ services:
         environment:
             WWWUSER: '${WWWUSER}'
             LARAVEL_SAIL: 1
+            # Seconds between OPcache checks for changed PHP files (see docker/php/opcache.ini).
+            PHP_OPCACHE_REVALIDATE_FREQ: '${PHP_OPCACHE_REVALIDATE_FREQ:-2}'
         volumes:
             - '.:/var/www/html'
             - './docker/php/opcache.ini:/etc/php/8.4/cli/conf.d/99-opcache.ini:ro'
@@ -69,6 +75,8 @@ services:
         environment:
             WWWUSER: '${WWWUSER}'
             LARAVEL_SAIL: 1
+            # Seconds between OPcache checks for changed PHP files (see docker/php/opcache.ini).
+            PHP_OPCACHE_REVALIDATE_FREQ: '${PHP_OPCACHE_REVALIDATE_FREQ:-2}'
         volumes:
             - '.:/var/www/html'
             - './docker/php/opcache.ini:/etc/php/8.4/cli/conf.d/99-opcache.ini:ro'

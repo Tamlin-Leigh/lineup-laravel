@@ -4,7 +4,6 @@ namespace App\Livewire\Profile;
 
 use App\Actions\UpdateProfile;
 use App\Enums\UserRole;
-use App\Livewire\Concerns\InteractsWithProfileForm;
 use App\Livewire\Forms\ProfileForm;
 use App\Models\User;
 use Flux\Flux;
@@ -22,8 +21,6 @@ use Livewire\Component;
 #[Title('Profile')]
 class EditProfile extends Component
 {
-    use InteractsWithProfileForm;
-
     /**
      * The tab that shows each field, so a failed save can jump to the first error.
      */

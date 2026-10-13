@@ -176,30 +176,6 @@ class ProfileForm extends Form
         return $this->validate($rules);
     }
 
-    public function addLink(string $field): void
-    {
-        $kind = self::LINK_FIELDS[$field] ?? null;
-
-        if ($kind === null || count($this->{$field}) >= self::MAX_LINKS) {
-            return;
-        }
-
-        $this->{$field}[] = ['platform' => $kind->platforms()[0]->value, 'url' => ''];
-    }
-
-    public function removeLink(string $field, int $index): void
-    {
-        if (! array_key_exists($field, self::LINK_FIELDS)) {
-            return;
-        }
-
-        $links = $this->{$field};
-        unset($links[$index]);
-        $this->{$field} = array_values($links);
-
-        $this->resetErrorBag();
-    }
-
     /**
      * @return array<string, mixed>
      */
