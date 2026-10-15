@@ -88,3 +88,22 @@ test('deleting an account removes its free days', function () {
 
     expect(Availability::count())->toBe(0);
 });
+
+test('remove clears only the given future days', function () {
+    foreach (['2026-10-09', '2026-10-10', '2026-10-16'] as $date) {
+        Availability::factory()->for($this->user)->create(['date' => $date]);
+    }
+
+    expect($this->action->remove($this->user, [CarbonImmutable::parse('2026-10-10'), CarbonImmutable::parse('2026-10-16'), CarbonImmutable::parse('2026-10-01')]))->toBe(2)
+        ->and(freeDates($this->user))->toBe(['2026-10-09']);
+});
+
+test('changing free days records when, but an event clearing a day does not', function () {
+    $this->action->markBusy($this->user, CarbonImmutable::parse('2026-10-09'));
+
+    expect($this->user->fresh()->availability_updated_at)->toBeNull();
+
+    $this->action->toggle($this->user, CarbonImmutable::parse('2026-10-09'));
+
+    expect($this->user->fresh()->availability_updated_at->toDateTimeString())->toBe('2026-10-08 09:00:00');
+});

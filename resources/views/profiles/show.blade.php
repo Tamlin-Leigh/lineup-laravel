@@ -44,6 +44,10 @@
             @else
                 <flux:text>{{ __('No free days marked at the moment.') }}</flux:text>
             @endif
+
+            @if ($user->availability_updated_at)
+                <flux:text size="sm" data-test="availability-updated-at">{{ __('Last updated :when', ['when' => $user->availability_updated_at->diffForHumans()]) }}</flux:text>
+            @endif
         </x-profile-section>
 
         @if ($venue)

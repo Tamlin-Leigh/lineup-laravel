@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Models\Availability;
+use App\Models\BookingRequest;
 use App\Models\Event;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -36,6 +37,8 @@ class UpdateAvailability
         $deleted = $user->availabilities()->whereDate('date', $day->toDateString())->delete();
 
         if ($deleted > 0) {
+            $this->touch($user);
+
             return false;
         }
 
@@ -67,7 +70,46 @@ class UpdateAvailability
         $dates = array_keys($rows);
         $rows = array_diff_key($rows, $this->busyDays($user, min($dates), max($dates)));
 
-        return $rows === [] ? 0 : Availability::query()->insertOrIgnore(array_values($rows));
+        $marked = $rows === [] ? 0 : Availability::query()->insertOrIgnore(array_values($rows));
+
+        if ($marked > 0) {
+            $this->touch($user);
+        }
+
+        return $marked;
+    }
+
+    /**
+     * Clear particular free days, leaving past days untouched.
+     *
+     * @param  iterable<CarbonInterface>  $days
+     * @return int How many days were cleared.
+     */
+    public function remove(User $user, iterable $days): int
+    {
+        $dates = collect($days)
+            ->filter(fn (CarbonInterface $day) => $this->canChange($day))
+            ->mapWithKeys(fn (CarbonInterface $day) => [$day->toDateString() => true]);
+
+        if ($dates->isEmpty()) {
+            return 0;
+        }
+
+        // Match on the formatted date rather than whereIn(), for the SQLite time-part reason in Availability::upcoming().
+        $ids = $user->availabilities()
+            ->whereDate('date', '>=', $dates->keys()->min())
+            ->whereDate('date', '<=', $dates->keys()->max())
+            ->get(['id', 'date'])
+            ->filter(fn (Availability $availability) => $dates->has($availability->date->toDateString()))
+            ->modelKeys();
+
+        $removed = $ids === [] ? 0 : Availability::query()->whereKey($ids)->delete();
+
+        if ($removed > 0) {
+            $this->touch($user);
+        }
+
+        return $removed;
     }
 
     /**
@@ -103,10 +145,45 @@ class UpdateAvailability
     {
         $from = CarbonImmutable::parse($from)->max(today());
 
-        return $user->availabilities()
+        $cleared = $user->availabilities()
             ->whereDate('date', '>=', $from->toDateString())
             ->whereDate('date', '<=', $to->toDateString())
             ->delete();
+
+        if ($cleared > 0) {
+            $this->touch($user);
+        }
+
+        return $cleared;
+    }
+
+    /**
+     * Days between two dates on which the user has a booking request waiting for their reply,
+     * as Y-m-d => event titles. Clearing such a day doesn't decline the request, so callers warn.
+     *
+     * @return array<string, list<string>>
+     */
+    public function pendingRequestDays(User $user, string $from, string $to): array
+    {
+        return $user->receivedBookingRequests()
+            ->awaitingReply()
+            ->whereHas('event', fn ($query) => $query
+                ->whereDate('starts_at', '>=', $from)
+                ->whereDate('starts_at', '<=', $to))
+            ->with('event')
+            ->get()
+            ->groupBy(fn (BookingRequest $booking) => $booking->event->starts_at->format('Y-m-d'))
+            ->map(fn ($bookings) => array_values($bookings->map(fn (BookingRequest $booking) => $booking->event->title)->all()))
+            ->all();
+    }
+
+    /**
+     * Record that the user changed their free days themselves (not as a side effect of an event),
+     * so profiles and Discover can show how current they are.
+     */
+    private function touch(User $user): void
+    {
+        $user->forceFill(['availability_updated_at' => now()])->saveQuietly();
     }
 
     private function isFree(User $user, CarbonInterface $day): bool

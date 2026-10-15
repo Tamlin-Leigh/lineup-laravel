@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -29,6 +30,9 @@ class Calendar extends Component
     public string $month = '';
 
     public bool $markingAvailability = false;
+
+    /** Free days untouched for longer than this get a "still accurate?" nudge. */
+    public const STALE_AFTER_DAYS = 30;
 
     public function previousMonth(): void
     {
@@ -78,6 +82,33 @@ class Calendar extends Component
         $month = $this->visibleMonth();
 
         $updateAvailability->clear($this->user(), $month, $month->endOfMonth());
+    }
+
+    /**
+     * Re-render after the CSV import (a child component) has changed the free days.
+     */
+    #[On('availability-updated')]
+    public function refreshAvailability(): void {}
+
+    /**
+     * Free days in the visible month that have a booking request waiting for a reply, which
+     * "Clear month" warns about.
+     */
+    public function freeDaysWithPendingRequests(): int
+    {
+        return count(array_intersect_key($this->freeDays(), $this->pendingByDay()->all()));
+    }
+
+    /**
+     * Whether the user has upcoming free days they haven't looked at for a while.
+     */
+    public function availabilityLooksStale(): bool
+    {
+        $updatedAt = $this->user()->availability_updated_at;
+
+        return $updatedAt !== null
+            && $updatedAt->lt(now()->subDays(self::STALE_AFTER_DAYS))
+            && $this->upcomingFreeDays()->isNotEmpty();
     }
 
     public function visibleMonth(): CarbonImmutable
