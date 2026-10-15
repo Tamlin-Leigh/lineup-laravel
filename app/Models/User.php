@@ -26,6 +26,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property string|null $phone
  * @property UserRole $role
  * @property string|null $profile_photo_path
+ * @property Carbon|null $availability_updated_at
  * @property Carbon|null $email_verified_at
  * @property string $password
  * @property string|null $two_factor_secret
@@ -64,6 +65,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
+            'availability_updated_at' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,
         ];

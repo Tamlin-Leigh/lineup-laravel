@@ -121,6 +121,10 @@
                             <span class="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-800">{{ $availability->date->format('D j M') }}</span>
                         @endforeach
                     </div>
+
+                    @if ($account->availability_updated_at)
+                        <p class="text-xs text-zinc-500">{{ __('Availability updated :when', ['when' => $account->availability_updated_at->diffForHumans()]) }}</p>
+                    @endif
                 </a>
             @endforeach
         </div>

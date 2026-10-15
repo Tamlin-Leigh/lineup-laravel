@@ -7,6 +7,7 @@
     $busyDays = $this->busyDays;
     $pendingByDay = $this->pendingByDay;
     $freeDays = $this->freeDays;
+    $pendingFreeDays = $this->freeDaysWithPendingRequests();
 @endphp
 
 <div class="mx-auto flex w-full max-w-6xl flex-col gap-5 lg:flex-row lg:items-start">
@@ -48,13 +49,16 @@
                 <p class="text-sm text-emerald-900 dark:text-emerald-200">
                     {{ __('Click the days you are free for a gig. Click again to clear a day.') }}
                 </p>
-                <div class="flex gap-2">
+                <div class="flex flex-wrap gap-2">
                     <flux:button size="sm" wire:click="markWeekends">{{ __('Mark all weekends') }}</flux:button>
+                    <flux:modal.trigger :name="\App\Livewire\Events\AvailabilityImport::MODAL">
+                        <flux:button size="sm" icon="arrow-up-tray" data-test="import-availability-button">{{ __('Import days') }}</flux:button>
+                    </flux:modal.trigger>
                     <flux:button
                         size="sm"
                         variant="ghost"
                         wire:click="clearMonth"
-                        wire:confirm="{{ __('Clear every free day in :month?', ['month' => $month->format('F')]) }}"
+                        wire:confirm="{{ __('Clear every free day in :month?', ['month' => $month->format('F')]) }}{{ $pendingFreeDays > 0 ? ' '.trans_choice(':count of them has a booking request waiting for your reply. Clearing the day does not decline it.|:count of them have booking requests waiting for your reply. Clearing a day does not decline them.', $pendingFreeDays) : '' }}"
                     >
                         {{ __('Clear month') }}
                     </flux:button>
@@ -71,6 +75,11 @@
             class="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900"
             x-data="{
                 flip(day, date) {
+                    // Clearing a day with a request waiting doesn't decline it, so check first.
+                    if (day.dataset.free === 'true' && day.dataset.pending && ! confirm(day.dataset.pending)) {
+                        return
+                    }
+
                     const free = day.dataset.free !== 'true'
                     day.dataset.free = free
                     day.setAttribute('aria-pressed', free)
@@ -101,6 +110,9 @@
                                 tabindex="0"
                                 x-on:click="flip($el, '{{ $key }}')"
                                 x-on:keydown.enter.prevent="flip($el, '{{ $key }}')"
+                                @if ($pendingByDay->has($key))
+                                    data-pending="{{ __('You have a booking request waiting for your reply on :day (:events). Clearing the day does not decline it, so remember to reply on the Bookings page. Clear the day anyway?', ['day' => $day->format('D j M'), 'events' => $pendingByDay->get($key)->map(fn ($booking) => $booking->event->title)->implode(', ')]) }}"
+                                @endif
                                 aria-pressed="{{ $isFree ? 'true' : 'false' }}"
                                 aria-label="{{ $day->format('j F') }}: {{ __('click to mark free or clear') }}"
                                 wire:key="day-{{ $key }}"
@@ -177,6 +189,16 @@
                 <flux:text>{{ __('You have not marked any free days yet. Venues, bands and organisers will be able to find you on the days you are free.') }}</flux:text>
             @endforelse
 
+            @if ($this->availabilityLooksStale())
+                <flux:callout icon="clock" color="amber" data-test="stale-availability">
+                    <flux:callout.text>{{ __('You have not updated your free days in over :days days. Are they still right? Others see when you last updated them.', ['days' => $this::STALE_AFTER_DAYS]) }}</flux:callout.text>
+                </flux:callout>
+            @endif
+
+            @if ($updatedAt = auth()->user()->availability_updated_at)
+                <flux:text size="sm" data-test="availability-updated-at">{{ __('Last updated :when', ['when' => $updatedAt->diffForHumans()]) }}</flux:text>
+            @endif
+
             @unless ($markingAvailability)
                 <div>
                     <flux:link wire:click="$set('markingAvailability', true)" class="cursor-pointer text-sm">{{ __('Mark free days') }}</flux:link>
@@ -221,4 +243,6 @@
             <flux:text size="sm" class="mt-1">{{ __('Faded, dashed entries are drafts only you can see.') }}</flux:text>
         </x-profile-section>
     </div>
+
+    <livewire:events.availability-import />
 </div>
