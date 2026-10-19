@@ -46,6 +46,19 @@ test('days flip in the browser first, and the re-render carries what was saved',
     expect($day())->toBe('true');
 });
 
+test('clicks still being saved survive re-renders from earlier saves', function () {
+    $user = User::factory()->band()->create();
+
+    // Livewire's own saves can't run here, so check the page carries what the browser side needs:
+    // a hook on each re-render, and a way to find each clickable day by its date.
+    Livewire::actingAs($user)
+        ->test(Calendar::class)
+        ->set('markingAvailability', true)
+        ->assertSeeHtml('$wire.$interceptMessage(')
+        ->assertSeeHtml('onMorphed(() => this.keepUnsavedClicks())')
+        ->assertSeeHtml('data-date="2026-10-09"');
+});
+
 test('malformed or past dates are ignored', function () {
     $user = User::factory()->band()->create();
 
