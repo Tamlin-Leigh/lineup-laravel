@@ -1,3 +1,5 @@
+name: lineup-laravel
+
 services:
     laravel.test:
         build:

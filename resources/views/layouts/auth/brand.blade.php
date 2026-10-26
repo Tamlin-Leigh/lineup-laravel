@@ -25,7 +25,7 @@
             <main class="flex items-center justify-center bg-brand-tertiary/25 px-4 py-8">
                 <div class="flex w-full max-w-md flex-col gap-6">
                     {{-- The banner (and its wordmark) is hidden on small screens. --}}
-                    <p class="text-center text-3xl font-extrabold tracking-[-0.6px] text-brand md:hidden">{{ config('app.name', 'BandLink') }}</p>
+                    <p class="text-center text-3xl font-extrabold tracking-[-0.6px] text-brand md:hidden">{{ config('app.name', 'LineUp') }}</p>
 
                     <div class="rounded-2xl border border-zinc-200 bg-white p-7 shadow-[0_20px_55px_rgba(0,0,0,0.08)]">
                         {{ $slot }}
@@ -37,7 +37,7 @@
             <aside class="relative hidden bg-cover bg-center md:block" style="background-image: url('{{ asset('images/SignUpBanner.jpg') }}')">
                 <div class="absolute inset-0 bg-[rgba(10,22,22,0.55)] backdrop-blur-md"></div>
                 <div class="absolute inset-0 flex flex-col items-center justify-center px-10 text-center text-white">
-                    <p class="text-5xl font-extrabold tracking-[-1px]">{{ config('app.name', 'BandLink') }}</p>
+                    <p class="text-5xl font-extrabold tracking-[-1px]">{{ config('app.name', 'LineUp') }}</p>
                     <p class="mt-3 max-w-sm text-base/relaxed opacity-90">{{ __('Find all your band needs here.') }}</p>
                 </div>
             </aside>

@@ -12,7 +12,7 @@ test('signed in users visiting the home page are sent to their dashboard', funct
         ->assertRedirect(route('dashboard'));
 });
 
-test('the log in page uses the BandLink layout', function () {
+test('the log in page uses the LineUp layout', function () {
     $this->get(route('login'))
         ->assertOk()
         ->assertSee('Welcome Back')

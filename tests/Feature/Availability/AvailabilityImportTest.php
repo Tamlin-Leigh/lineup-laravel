@@ -159,7 +159,7 @@ test('the example file can be downloaded', function () {
     Livewire::actingAs($this->user)
         ->test(AvailabilityImport::class)
         ->call('downloadTemplate')
-        ->assertFileDownloaded('bandlink-free-days.csv', "date\n2026-10-09\n2026-10-10\n2026-10-16\n2026-10-17\n2026-10-23\n2026-10-24\n");
+        ->assertFileDownloaded('lineup-free-days.csv', "date\n2026-10-09\n2026-10-10\n2026-10-16\n2026-10-17\n2026-10-23\n2026-10-24\n");
 });
 
 test('the calendar offers the import and asks before clearing a day with a request waiting', function () {
