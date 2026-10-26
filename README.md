@@ -54,6 +54,7 @@ files it writes (compiled views, logs, cache) can no longer be updated by the ap
 | Migration status             | `sail artisan migrate:status`           | `docker compose exec -u sail laravel.test php artisan migrate:status`     |
 | New migration                | `sail artisan make:migration create_x_table` | `docker compose exec -u sail laravel.test php artisan make:migration create_x_table` |
 | Tinker                       | `sail tinker`                           | `docker compose exec -u sail laravel.test php artisan tinker`             |
+| Update PHP (security patch)  | `sail build --no-cache` then `sail up -d --force-recreate` | `docker compose build --no-cache` then `docker compose up -d --force-recreate` |
 | Queue worker logs / restart  | `sail logs queue` / `sail restart queue` | `docker compose logs queue` / `docker compose restart queue`      |
 | MySQL shell                  | `sail mysql`                            | `docker compose exec mysql mysql -u sail -ppassword bandlink`     |
 | Tests                        | `sail test`                             | `docker compose exec -u sail laravel.test php artisan test`               |
