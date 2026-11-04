@@ -70,10 +70,65 @@
             Marking a day free (or clearing it) shows straight away: the click flips the day's data-free
             in the browser, then saves. The re-render that follows sets data-free back to what the server
             saved, so a day it refused (e.g. booked in the meantime) flips back by itself.
+
+            Clicks made while earlier saves are still on their way are queued, and each re-render only
+            knows what was saved so far. So days whose own save hasn't come back yet keep the state they
+            were clicked to; each one takes the server's word once its save has landed.
         --}}
         <div
             class="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900"
             x-data="{
+                // Y-m-d => clicks not yet saved, and the state those clicks left the day in.
+                unsaved: {},
+                clickedTo: {},
+
+                init() {
+                    this.stopIntercepting = $wire.$interceptMessage(({ message, onSuccess, onFinish, onCancel }) => {
+                        let settled = false
+
+                        // Runs before the re-render, so it shows what the server did with these clicks.
+                        const settle = () => {
+                            if (settled) return
+                            settled = true
+
+                            message.actions.forEach((action) => {
+                                if (action.name !== 'toggleDay') return
+
+                                const date = action.params[0]
+                                // Identical calls in one request are squashed into one action.
+                                this.unsaved[date] = (this.unsaved[date] ?? 0) - 1 - action.squashedActions.size
+
+                                if (this.unsaved[date] <= 0) {
+                                    delete this.unsaved[date]
+                                    delete this.clickedTo[date]
+                                }
+                            })
+                        }
+
+                        onSuccess(({ onMorphed }) => {
+                            settle()
+                            onMorphed(() => this.keepUnsavedClicks())
+                        })
+                        onFinish(settle)
+                        onCancel(settle)
+                    })
+                },
+
+                destroy() {
+                    this.stopIntercepting?.()
+                },
+
+                keepUnsavedClicks() {
+                    Object.entries(this.clickedTo).forEach(([date, free]) => {
+                        const day = this.$root.querySelector(`[data-date='${date}']`)
+
+                        if (day) {
+                            day.dataset.free = free
+                            day.setAttribute('aria-pressed', free)
+                        }
+                    })
+                },
+
                 flip(day, date) {
                     // Clearing a day with a request waiting doesn't decline it, so check first.
                     if (day.dataset.free === 'true' && day.dataset.pending && ! confirm(day.dataset.pending)) {
@@ -83,6 +138,8 @@
                     const free = day.dataset.free !== 'true'
                     day.dataset.free = free
                     day.setAttribute('aria-pressed', free)
+                    this.unsaved[date] = (this.unsaved[date] ?? 0) + 1
+                    this.clickedTo[date] = free
                     $wire.toggleDay(date)
                 },
             }"
@@ -116,6 +173,7 @@
                                 aria-pressed="{{ $isFree ? 'true' : 'false' }}"
                                 aria-label="{{ $day->format('j F') }}: {{ __('click to mark free or clear') }}"
                                 wire:key="day-{{ $key }}"
+                                data-date="{{ $key }}"
                                 data-test="calendar-day-{{ $key }}"
                             @endif
                             @class([
