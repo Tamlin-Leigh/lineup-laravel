@@ -141,7 +141,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /**
      * Messages in this user's booking chats they haven't seen: anything from the other side (or a
-     * BandLink note) posted since they last opened that chat.
+     * LineUp note) posted since they last opened that chat.
      */
     public function unreadMessagesCount(): int
     {
