@@ -35,7 +35,7 @@ function chat(): Conversation
     return Conversation::factory()->create();
 }
 
-test('accepting a booking opens a private chat with a note from BandLink', function () {
+test('accepting a booking opens a private chat with a note from LineUp', function () {
     $booking = BookingRequest::factory()->create();
 
     app(AnswerBookingRequest::class)->accept($booking);

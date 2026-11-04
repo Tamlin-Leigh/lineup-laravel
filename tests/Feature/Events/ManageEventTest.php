@@ -81,7 +81,7 @@ test('venues hold their events at their own venue', function () {
     expect($user->events()->sole()->venue->is($user->venueProfile))->toBeTrue();
 });
 
-test('other events are only linked to a BandLink venue once it accepts a booking request', function () {
+test('other events are only linked to a LineUp venue once it accepts a booking request', function () {
     $user = User::factory()->band()->create();
 
     Livewire::actingAs($user)

@@ -150,7 +150,7 @@ class Conversation extends Model
     }
 
     /**
-     * Messages the user hasn't seen yet: anything from the other side (or BandLink) since they
+     * Messages the user hasn't seen yet: anything from the other side (or LineUp) since they
      * last opened the chat.
      *
      * @return HasMany<Message, $this>

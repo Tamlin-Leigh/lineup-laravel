@@ -14,7 +14,7 @@ class SendMessage
     public const ALERT_AFTER_MINUTES = 15;
 
     /**
-     * Post a message to a booking chat. Without a sender it's a note from BandLink (e.g. "The
+     * Post a message to a booking chat. Without a sender it's a note from LineUp (e.g. "The
      * Doloress accepted"). The other side gets it live over Reverb, and an email if it's still
      * unread after a while.
      */

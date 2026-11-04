@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * One message in a booking chat. A message without a sender is a note BandLink posted itself.
+ * One message in a booking chat. A message without a sender is a note LineUp posted itself.
  *
  * @property int $id
  * @property int $conversation_id

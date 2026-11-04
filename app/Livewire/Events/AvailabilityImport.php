@@ -115,7 +115,7 @@ class AvailabilityImport extends Component
     {
         return response()->streamDownload(
             fn () => print ($importAvailability->template()),
-            'bandlink-free-days.csv',
+            'lineup-free-days.csv',
             ['Content-Type' => 'text/csv'],
         );
     }

@@ -33,7 +33,7 @@ return new class extends Migration
         Schema::create('messages', function (Blueprint $table) {
             $table->id();
             $table->foreignId('conversation_id')->constrained()->cascadeOnDelete();
-            // Null for notes BandLink posts itself, e.g. "The Doloress accepted".
+            // Null for notes LineUp posts itself, e.g. "The Doloress accepted".
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->text('body');
             $table->timestamps();
