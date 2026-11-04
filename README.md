@@ -1,4 +1,4 @@
-# BandLink
+# LineUp
 
 A booking platform connecting **bands**, **venues** and **event organisers**, built with Laravel 13 and Livewire.
 
@@ -28,7 +28,7 @@ npm install && npm run dev
 - Mailpit (caught emails): http://localhost:8025
 - Reverb (real-time chat WebSockets): `ws://localhost:8085`, used by the browser automatically
 - phpMyAdmin: http://localhost:8081 (logs in as the `sail` user; only reachable from this machine)
-- MySQL from a GUI client: `127.0.0.1:3307`, user `sail`, password `password`, database `bandlink`
+- MySQL from a GUI client: `127.0.0.1:3307`, user `sail`, password `password`, database `lineup`
 
 The seeder creates one demo account per role, all with the password `password`:
 `venue@example.com`, `band@example.com`, `organiser@example.com` and `admin@example.com`.
@@ -54,8 +54,9 @@ files it writes (compiled views, logs, cache) can no longer be updated by the ap
 | Migration status             | `sail artisan migrate:status`           | `docker compose exec -u sail laravel.test php artisan migrate:status`     |
 | New migration                | `sail artisan make:migration create_x_table` | `docker compose exec -u sail laravel.test php artisan make:migration create_x_table` |
 | Tinker                       | `sail tinker`                           | `docker compose exec -u sail laravel.test php artisan tinker`             |
+| Update PHP (security patch)  | `sail build --no-cache` then `sail up -d --force-recreate` | `docker compose build --no-cache` then `docker compose up -d --force-recreate` |
 | Queue worker logs / restart  | `sail logs queue` / `sail restart queue` | `docker compose logs queue` / `docker compose restart queue`      |
-| MySQL shell                  | `sail mysql`                            | `docker compose exec mysql mysql -u sail -ppassword bandlink`     |
+| MySQL shell                  | `sail mysql`                            | `docker compose exec mysql mysql -u sail -ppassword lineup`     |
 | Tests                        | `sail test`                             | `docker compose exec -u sail laravel.test php artisan test`               |
 
 Tests run against in-memory SQLite (see `phpunit.xml`), so `composer test` also works without Docker
@@ -89,11 +90,11 @@ to well under 0.1s. You need a WSL distro (e.g. Ubuntu, `wsl -l -v` lists them) 
 
 ```bash
 # 1. Stop the copy on the Windows drive (its database and Redis data stay in Docker volumes).
-cd "/mnt/c/Users/<you>/<path to>/bandlink-laravel" && docker compose down
+cd "/mnt/c/Users/<you>/<path to>/lineup-laravel" && docker compose down
 
 # 2. Clone into your Linux home and bring your .env across.
-cd ~ && git clone https://github.com/Tamlin-Leigh/bandlink-laravel.git && cd bandlink-laravel
-cp "/mnt/c/Users/<you>/<path to>/bandlink-laravel/.env" .
+cd ~ && git clone https://github.com/Tamlin-Leigh/lineup-laravel.git && cd lineup-laravel
+cp "/mnt/c/Users/<you>/<path to>/lineup-laravel/.env" .
 echo "PHP_OPCACHE_REVALIDATE_FREQ=0" >> .env   # file checks are cheap here: edits show up on the next request
 
 # 3. Install PHP packages without needing PHP in WSL, then start everything.
@@ -102,7 +103,7 @@ docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd):/var/www/html" -w /var/www/htm
 docker compose up -d
 
 # 4. Bring across uploaded profile photos (not in git) and link them into public/.
-cp -r "/mnt/c/Users/<you>/<path to>/bandlink-laravel/storage/app/public/." storage/app/public/
+cp -r "/mnt/c/Users/<you>/<path to>/lineup-laravel/storage/app/public/." storage/app/public/
 docker compose exec -u sail laravel.test php artisan storage:link
 
 # 5. Front end (needs Node in WSL, e.g. via nvm), then open the folder in VS Code.
@@ -110,7 +111,7 @@ npm install && npm run dev
 code .
 ```
 
-The folder keeps the name `bandlink-laravel`, so Docker Compose reuses the same `sail-mysql` and `sail-redis`
+`compose.yaml` pins the project name to `lineup-laravel`, so Docker Compose reuses the same `sail-mysql` and `sail-redis`
 volumes: your data, accounts and seeded demo data carry over without re-migrating. `code .` opens VS Code
 through its **WSL** extension (it offers to install it); from then on, use the terminal inside VS Code, which
 runs in Ubuntu. Once everything works, the copy on the Windows drive can be deleted.

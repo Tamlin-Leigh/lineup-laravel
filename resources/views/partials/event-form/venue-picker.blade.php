@@ -36,7 +36,7 @@
                 </span>
                 <span class="min-w-0 flex-1">
                     <span class="block font-bold text-zinc-900">{{ __('Somewhere else') }}</span>
-                    <span class="block text-xs text-zinc-500">{{ __('Not a BandLink venue') }}</span>
+                    <span class="block text-xs text-zinc-500">{{ __('Not a LineUp venue') }}</span>
                 </span>
             </label>
         @endif
