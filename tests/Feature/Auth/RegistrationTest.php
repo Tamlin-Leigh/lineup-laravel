@@ -115,12 +115,12 @@ test('each role gets its own steps', function (UserRole $role, array $labels) {
     expect(registerAs($role)->instance()->steps())->toBe($labels);
 })->with([
     'venue' => [UserRole::Venue, ['account' => 'Account Details', 'personal' => 'Personal Info', 'manager' => 'Manager Details', 'venue' => 'Venue Details', 'event-days' => 'Event Preferences']],
-    'band' => [UserRole::Band, ['account' => 'Account Details', 'personal' => 'Personal Info', 'manager' => 'Manager Details', 'band' => 'Band Details', 'links' => 'Links']],
+    'artist' => [UserRole::Artist, ['account' => 'Account Details', 'personal' => 'Personal Info', 'manager' => 'Manager Details', 'artist' => 'Artist Details', 'links' => 'Links']],
     'organiser' => [UserRole::Organiser, ['account' => 'Account Details', 'personal' => 'Personal Info', 'organiser' => 'Organiser Details']],
 ]);
 
 test('going back keeps what was entered', function () {
-    registerAs(UserRole::Band)
+    registerAs(UserRole::Artist)
         ->call('back')
         ->assertSet('step', 1)
         ->assertSet('form.name', 'Sam Smith');
@@ -207,12 +207,12 @@ test('a venue must pick at least one event day', function () {
     expect(User::count())->toBe(0);
 });
 
-test('a band can register with music and social links', function () {
-    registerAs(UserRole::Band)
+test('an artist can register with music and social links', function () {
+    registerAs(UserRole::Artist)
         ->set(managerDetails())
         ->call('next')
         ->set([
-            'form.band_name' => 'The Loud Ones',
+            'form.artist_name' => 'The Loud Ones',
             'form.member_count' => '4',
             'form.member_names' => 'Ann, Ben, Cat, Dan',
             'form.genre' => 'Rock',
@@ -225,10 +225,10 @@ test('a band can register with music and social links', function () {
         ->assertHasNoErrors()
         ->assertRedirect(route('dashboard', absolute: false));
 
-    $profile = User::sole()->bandProfile;
+    $profile = User::sole()->artistProfile;
 
     expect($profile)
-        ->band_name->toBe('The Loud Ones')
+        ->artist_name->toBe('The Loud Ones')
         ->member_count->toBe(4)
         ->bio->toBeNull()
         ->and($profile->links->map(fn ($link) => [$link->kind, $link->platform, $link->url])->all())->toBe([
@@ -238,10 +238,10 @@ test('a band can register with music and social links', function () {
 });
 
 test('links must be real urls on a platform that fits their kind', function () {
-    registerAs(UserRole::Band)
+    registerAs(UserRole::Artist)
         ->set(managerDetails())
         ->call('next')
-        ->set(['form.band_name' => 'X', 'form.member_count' => '1', 'form.member_names' => 'X', 'form.genre' => 'Pop'])
+        ->set(['form.artist_name' => 'X', 'form.member_count' => '1', 'form.member_names' => 'X', 'form.genre' => 'Pop'])
         ->call('next')
         ->set('form.music_links', [['platform' => LinkPlatform::Instagram->value, 'url' => 'javascript:alert(1)']])
         ->call('next')
@@ -268,7 +268,7 @@ test('an organiser can register', function () {
         ->and($user->organiserProfile)->org_name->toBe('Gig Co')
         ->and($user->organiserProfile->links)->toHaveCount(1)
         ->and($user->venueProfile)->toBeNull()
-        ->and($user->bandProfile)->toBeNull();
+        ->and($user->artistProfile)->toBeNull();
 });
 
 test('the final step re-validates every step for the role', function () {

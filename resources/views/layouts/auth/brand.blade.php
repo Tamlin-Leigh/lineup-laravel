@@ -38,7 +38,7 @@
                 <div class="absolute inset-0 bg-[rgba(10,22,22,0.55)] backdrop-blur-md"></div>
                 <div class="absolute inset-0 flex flex-col items-center justify-center px-10 text-center text-white">
                     <p class="text-5xl font-extrabold tracking-[-1px]">{{ config('app.name', 'LineUp') }}</p>
-                    <p class="mt-3 max-w-sm text-base/relaxed opacity-90">{{ __('Find all your band needs here.') }}</p>
+                    <p class="mt-3 max-w-sm text-base/relaxed opacity-90">{{ __('Find all your artist needs here.') }}</p>
                 </div>
             </aside>
         </div>

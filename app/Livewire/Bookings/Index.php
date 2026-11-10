@@ -15,7 +15,7 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
- * Requests this account has received (bands and venues answer them here) and requests it has
+ * Requests this account has received (artists and venues answer them here) and requests it has
  * sent for its own events. Opening the page marks the account's booking notifications as read.
  */
 class Index extends Component
@@ -63,7 +63,7 @@ class Index extends Component
     public function bookings(): array
     {
         $bookings = $this->query()
-            ->with(['event.owner.venueProfile', 'event.owner.bandProfile', 'event.owner.organiserProfile', 'recipient.bandProfile', 'recipient.venueProfile'])
+            ->with(['event.owner.venueProfile', 'event.owner.artistProfile', 'event.owner.organiserProfile', 'recipient.artistProfile', 'recipient.venueProfile'])
             ->get();
 
         [$awaiting, $rest] = $bookings->partition(fn (BookingRequest $booking) => $booking->isAwaitingReply());

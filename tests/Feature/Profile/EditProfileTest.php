@@ -17,7 +17,7 @@ test('guests are sent to log in', function () {
 
 test('each role sees its own profile', function (string $state, string $expected) {
     $user = User::factory()->{$state}()->create();
-    $profile = $user->venueProfile ?? $user->bandProfile ?? $user->organiserProfile;
+    $profile = $user->venueProfile ?? $user->artistProfile ?? $user->organiserProfile;
 
     $this->actingAs($user)
         ->get(route('profile.show'))
@@ -26,7 +26,7 @@ test('each role sees its own profile', function (string $state, string $expected
         ->assertSee($profile->{$expected});
 })->with([
     'venue' => ['venue', 'location'],
-    'band' => ['band', 'band_name'],
+    'artist' => ['artist', 'artist_name'],
     'organiser' => ['organiser', 'org_name'],
 ]);
 
@@ -36,18 +36,18 @@ test('admins are sent to their account settings', function () {
         ->assertRedirect(route('profile.edit'));
 });
 
-test('a band can edit its profile', function () {
-    $user = User::factory()->band()->create();
+test('an artist can edit its profile', function () {
+    $user = User::factory()->artist()->create();
 
     Livewire::actingAs($user)
         ->test(EditProfile::class)
         ->call('edit')
         ->assertSet('editing', true)
-        ->assertSet('form.band_name', $user->bandProfile->band_name)
+        ->assertSet('form.artist_name', $user->artistProfile->artist_name)
         ->set([
             'form.name' => 'New Name',
             'form.phone' => '+27 82 000 1111',
-            'form.band_name' => 'The New Sound',
+            'form.artist_name' => 'The New Sound',
             'form.member_count' => '3',
             'form.bio' => '',
         ])
@@ -60,8 +60,8 @@ test('a band can edit its profile', function () {
     expect($user)
         ->name->toBe('New Name')
         ->phone->toBe('+27820001111')
-        ->and($user->bandProfile)
-        ->band_name->toBe('The New Sound')
+        ->and($user->artistProfile)
+        ->artist_name->toBe('The New Sound')
         ->member_count->toBe(3)
         ->bio->toBeNull();
 });
@@ -155,16 +155,16 @@ test('venue links show on its public profile', function () {
         'url' => 'https://instagram.com/thevenue',
     ]);
 
-    $this->actingAs(User::factory()->band()->create())
+    $this->actingAs(User::factory()->artist()->create())
         ->get(route('profiles.show', $venue))
         ->assertOk()
         ->assertSee('https://instagram.com/thevenue');
 });
 
 test('saving one kind of link leaves the other kind alone', function () {
-    $user = User::factory()->band()->create();
-    $band = $user->bandProfile;
-    Link::factory()->for($band, 'linkable')->create(['kind' => LinkKind::Social, 'platform' => LinkPlatform::TikTok]);
+    $user = User::factory()->artist()->create();
+    $artist = $user->artistProfile;
+    Link::factory()->for($artist, 'linkable')->create(['kind' => LinkKind::Social, 'platform' => LinkPlatform::TikTok]);
 
     Livewire::actingAs($user)
         ->test(EditProfile::class)
@@ -173,11 +173,11 @@ test('saving one kind of link leaves the other kind alone', function () {
         ->call('save')
         ->assertHasNoErrors();
 
-    expect($band->links()->pluck('kind')->all())->toEqualCanonicalizing([LinkKind::Social, LinkKind::Music]);
+    expect($artist->links()->pluck('kind')->all())->toEqualCanonicalizing([LinkKind::Social, LinkKind::Music]);
 });
 
 test('a failed save shows the tab with the first error', function () {
-    Livewire::actingAs(User::factory()->band()->create())
+    Livewire::actingAs(User::factory()->artist()->create())
         ->test(EditProfile::class)
         ->call('edit')
         ->set('form.manager_email', 'not-an-email')
@@ -188,7 +188,7 @@ test('a failed save shows the tab with the first error', function () {
 });
 
 test('cancelling discards unsaved changes', function () {
-    $user = User::factory()->band()->create(['name' => 'Original']);
+    $user = User::factory()->artist()->create(['name' => 'Original']);
 
     Livewire::actingAs($user)
         ->test(EditProfile::class)
@@ -202,7 +202,7 @@ test('cancelling discards unsaved changes', function () {
 });
 
 test('saving never changes email or role', function () {
-    $user = User::factory()->band()->create(['email' => 'band@example.com']);
+    $user = User::factory()->artist()->create(['email' => 'artist@example.com']);
 
     Livewire::actingAs($user)
         ->test(EditProfile::class)
@@ -211,14 +211,14 @@ test('saving never changes email or role', function () {
         ->assertHasNoErrors();
 
     expect($user->fresh())
-        ->email->toBe('band@example.com')
-        ->role->toBe(UserRole::Band);
+        ->email->toBe('artist@example.com')
+        ->role->toBe(UserRole::Artist);
 });
 
 test('the profile being edited cannot be swapped from the browser', function () {
-    Livewire::actingAs(User::factory()->band()->create())
+    Livewire::actingAs(User::factory()->artist()->create())
         ->test(EditProfile::class)
-        ->set('user', User::factory()->band()->create());
+        ->set('user', User::factory()->artist()->create());
 })->throws(CannotUpdateLockedPropertyException::class);
 
 test('a profile missing its role record is created on first save', function () {
@@ -248,7 +248,7 @@ test('every role gets the same tabbed profile, with the tabs for its profile', f
     }
 })->with([
     'venue' => ['venue', ['account', 'venue', 'manager', 'event-days', 'links']],
-    'band' => ['band', ['account', 'band', 'members', 'manager', 'links']],
+    'artist' => ['artist', ['account', 'artist', 'members', 'manager', 'links']],
     'organiser' => ['organiser', ['account', 'organiser', 'links']],
 ]);
 
@@ -277,9 +277,9 @@ test('a tab the role does not have falls back to Account', function () {
 });
 
 test('links show the logo of their platform', function () {
-    $user = User::factory()->band()->create();
-    Link::factory()->for($user->bandProfile, 'linkable')->create(['kind' => LinkKind::Music, 'platform' => LinkPlatform::Spotify]);
-    Link::factory()->for($user->bandProfile, 'linkable')->create(['kind' => LinkKind::Social, 'platform' => LinkPlatform::Website]);
+    $user = User::factory()->artist()->create();
+    Link::factory()->for($user->artistProfile, 'linkable')->create(['kind' => LinkKind::Music, 'platform' => LinkPlatform::Spotify]);
+    Link::factory()->for($user->artistProfile, 'linkable')->create(['kind' => LinkKind::Social, 'platform' => LinkPlatform::Website]);
 
     $html = Livewire::actingAs($user)->test(EditProfile::class)->html();
 
@@ -300,7 +300,7 @@ test('every platform has an icon and a colour', function (LinkPlatform $platform
 })->with(LinkPlatform::cases());
 
 test('the link editor draws its rows in the browser, with an icon per platform', function () {
-    $html = Livewire::actingAs(User::factory()->band()->create())
+    $html = Livewire::actingAs(User::factory()->artist()->create())
         ->test(EditProfile::class)
         ->call('edit')
         ->html();

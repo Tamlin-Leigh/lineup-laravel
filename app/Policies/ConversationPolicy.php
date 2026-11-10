@@ -8,7 +8,7 @@ use App\Models\User;
 class ConversationPolicy
 {
     /**
-     * A booking chat is private to the event's owner and the band or venue that accepted.
+     * A booking chat is private to the event's owner and the artist or venue that accepted.
      */
     public function view(User $user, Conversation $conversation): bool
     {

@@ -4,7 +4,7 @@ use App\Models\Event;
 use App\Models\User;
 
 test('upcoming and past split events at the current moment', function () {
-    $user = User::factory()->band()->create();
+    $user = User::factory()->artist()->create();
     $soon = Event::factory()->for($user, 'owner')->create(['starts_at' => now()->addHour()]);
     $later = Event::factory()->for($user, 'owner')->create(['starts_at' => now()->addWeek()]);
     $recent = Event::factory()->for($user, 'owner')->create(['starts_at' => now()->subHour()]);
@@ -15,7 +15,7 @@ test('upcoming and past split events at the current moment', function () {
 });
 
 test('each tab holds the right events', function () {
-    $user = User::factory()->band()->create();
+    $user = User::factory()->artist()->create();
     $active = Event::factory()->for($user, 'owner')->create();
     $draft = Event::factory()->for($user, 'owner')->draft()->create();
     $past = Event::factory()->for($user, 'owner')->past()->create();

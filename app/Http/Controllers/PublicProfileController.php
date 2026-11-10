@@ -16,7 +16,7 @@ class PublicProfileController extends Controller
     {
         Gate::authorize('view', $user);
 
-        $user->load(['venueProfile.links', 'bandProfile.links', 'organiserProfile.links']);
+        $user->load(['venueProfile.links', 'artistProfile.links', 'organiserProfile.links']);
 
         return view('profiles.show', [
             'user' => $user,

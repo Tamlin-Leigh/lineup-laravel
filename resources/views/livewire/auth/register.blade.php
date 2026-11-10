@@ -98,7 +98,7 @@
 
             @case('manager')
                 <flux:text>
-                    {{ $role === UserRole::Venue->value ? __("Enter the venue manager's contact details") : __("Enter your band manager's contact details") }}
+                    {{ $role === UserRole::Venue->value ? __("Enter the venue manager's contact details") : __("Enter your artist manager's contact details") }}
                 </flux:text>
 
                 @include('partials.profile-fields.manager')
@@ -120,10 +120,10 @@
                 @include('partials.profile-fields.event-days')
                 @break
 
-            @case('band')
-                <flux:text>{{ __('Tell us about your band') }}</flux:text>
+            @case('artist')
+                <flux:text>{{ __('Tell us about the artist') }}</flux:text>
 
-                @include('partials.profile-fields.band')
+                @include('partials.profile-fields.artist')
                 @include('partials.profile-fields.members')
                 @break
 

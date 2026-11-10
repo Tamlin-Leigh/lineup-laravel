@@ -3,7 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\LinkKind;
-use App\Models\BandProfile;
+use App\Models\ArtistProfile;
 use App\Models\Link;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -22,8 +22,8 @@ class LinkFactory extends Factory
         $kind = fake()->randomElement(LinkKind::cases());
 
         return [
-            'linkable_type' => 'band_profile',
-            'linkable_id' => BandProfile::factory(),
+            'linkable_type' => 'artist_profile',
+            'linkable_id' => ArtistProfile::factory(),
             'kind' => $kind,
             'platform' => fake()->randomElement($kind->platforms()),
             'url' => fake()->url(),

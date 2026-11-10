@@ -7,7 +7,7 @@ use App\Enums\EventStatus;
 use Illuminate\Notifications\Messages\MailMessage;
 
 /**
- * Sent to the event's owner when a band or venue accepts or declines.
+ * Sent to the event's owner when an artist or venue accepts or declines.
  */
 class BookingAnswered extends BookingNotification
 {
@@ -39,7 +39,7 @@ class BookingAnswered extends BookingNotification
             ? $mail->line($line)->action(__('View your bookings'), route('bookings.index'))
             : $mail->line($line)
                 ->line(__('Their place is free again, so you can ask someone else who is free that day.'))
-                ->action($this->forVenue() ? __('Ask another venue') : __('Book another band'), route('events.edit', $this->booking->event));
+                ->action($this->forVenue() ? __('Ask another venue') : __('Book another artist'), route('events.edit', $this->booking->event));
     }
 
     protected function summary(): string

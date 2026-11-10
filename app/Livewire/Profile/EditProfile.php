@@ -16,7 +16,7 @@ use Livewire\Component;
 /**
  * The signed-in user's profile: read-only by default, with an edit mode that saves
  * every section for their role at once. Every role gets the same tabbed layout (the
- * prototype only had tabs for bands), with the tabs that fit its profile.
+ * prototype only had tabs for artists), with the tabs that fit its profile.
  */
 #[Title('Profile')]
 class EditProfile extends Component
@@ -38,11 +38,11 @@ class EditProfile extends Component
         'has_own_equipment' => 'venue',
         'equipment_details' => 'venue',
         'event_days' => 'event-days',
-        'band_name' => 'band',
-        'genre' => 'band',
-        'bio' => 'band',
-        'booking_fee' => 'band',
-        'accepts_door_split' => 'band',
+        'artist_name' => 'artist',
+        'genre' => 'artist',
+        'bio' => 'artist',
+        'booking_fee' => 'artist',
+        'accepts_door_split' => 'artist',
         'member_count' => 'members',
         'member_names' => 'members',
         'music_links' => 'links',
@@ -67,7 +67,7 @@ class EditProfile extends Component
         $user = Auth::user();
         $this->user = $user;
 
-        // Admins have no venue / band / organiser profile; their account details live in settings.
+        // Admins have no venue / artist / organiser profile; their account details live in settings.
         if ($user->role === UserRole::Admin) {
             $this->redirectRoute('profile.edit', navigate: true);
 
@@ -134,8 +134,8 @@ class EditProfile extends Component
                 'event-days' => __('Event Preferences'),
                 'links' => __('Links'),
             ],
-            UserRole::Band => [
-                'band' => __('Band Profile'),
+            UserRole::Artist => [
+                'artist' => __('Artist Profile'),
                 'members' => __('Members'),
                 'manager' => __('Manager'),
                 'links' => __('Links'),

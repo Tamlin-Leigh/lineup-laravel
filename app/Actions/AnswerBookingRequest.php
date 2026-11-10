@@ -16,7 +16,7 @@ class AnswerBookingRequest
     public function __construct(private SendMessage $messages) {}
 
     /**
-     * The band or venue says yes: that day is no longer free on their calendar, and a venue
+     * The artist or venue says yes: that day is no longer free on their calendar, and a venue
      * becomes the event's venue.
      *
      * @throws ValidationException when the request can't be answered or the recipient is already booked that day.
@@ -40,8 +40,8 @@ class AnswerBookingRequest
             ]);
         }
 
-        // A band hosting its own event that day is on that line-up already.
-        $hostingOwnEvent = $recipient->role === UserRole::Band && $recipient->events()
+        // An artist hosting its own event that day is on that line-up already.
+        $hostingOwnEvent = $recipient->role === UserRole::Artist && $recipient->events()
             ->where('status', '!=', EventStatus::Cancelled)
             ->whereDate('starts_at', $date)
             ->exists();
@@ -70,7 +70,7 @@ class AnswerBookingRequest
     }
 
     /**
-     * An accepted booking gets a private chat between the owner and the band or venue, opened with
+     * An accepted booking gets a private chat between the owner and the artist or venue, opened with
      * a note so both know what it's for. The one who accepted has seen it already.
      */
     private function openChat(BookingRequest $booking): void

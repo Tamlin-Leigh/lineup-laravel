@@ -32,13 +32,13 @@ test('the steps follow what each role books', function (string $state, array $st
     expect(array_keys($component->instance()->steps()))->toBe($steps);
 })->with([
     'venues skip where, as it is their venue' => ['venue', ['when', 'line-up', 'details']],
-    'bands pick a venue' => ['band', ['when', 'where', 'line-up', 'details']],
+    'artists pick a venue' => ['artist', ['when', 'where', 'line-up', 'details']],
     'organisers pick a venue' => ['organiser', ['when', 'where', 'line-up', 'details']],
 ]);
 
-test('an organiser walks through the steps and books a venue and a band', function () {
+test('an organiser walks through the steps and books a venue and an artist', function () {
     $venue = freeForWizard('venue', '2026-10-17');
-    $band = freeForWizard('band', '2026-10-17');
+    $artist = freeForWizard('artist', '2026-10-17');
     $organiser = User::factory()->organiser()->create();
 
     $component = Livewire::actingAs($organiser)
@@ -52,8 +52,8 @@ test('an organiser walks through the steps and books a venue and a band', functi
         ->set('venueId', (string) $venue->id)
         ->call('next')
         ->assertSet('step', 2)
-        ->assertSee($band->displayName())
-        ->set('bandIds', [(string) $band->id])
+        ->assertSee($artist->displayName())
+        ->set('artistIds', [(string) $artist->id])
         ->call('next')
         ->assertSet('step', 3)
         ->assertSee('Booking Requests')
@@ -70,13 +70,13 @@ test('an organiser walks through the steps and books a venue and a band', functi
 
     expect($event->title)->toBe('Spring Social')
         ->and($event->location)->toBe($venue->name.', '.$venue->venueProfile->location)
-        ->and($event->bookingRequests()->pluck('recipient_id')->sort()->values()->all())->toBe([$venue->id, $band->id]);
+        ->and($event->bookingRequests()->pluck('recipient_id')->sort()->values()->all())->toBe([$venue->id, $artist->id]);
 
-    Notification::assertSentTo([$venue, $band], BookingRequested::class);
+    Notification::assertSentTo([$venue, $artist], BookingRequested::class);
 });
 
 test('each step is checked before moving on', function () {
-    Livewire::actingAs(User::factory()->band()->create())
+    Livewire::actingAs(User::factory()->artist()->create())
         ->test(ManageEvent::class)
         ->set('form.date', 'not-a-date')
         ->call('next')
@@ -95,16 +95,16 @@ test('each step is checked before moving on', function () {
         ->assertSet('step', 2);
 });
 
-test('a band sees itself on the line-up step as the host', function () {
-    $band = User::factory()->band()->create();
+test('an artist sees itself on the line-up step as the host', function () {
+    $artist = User::factory()->artist()->create();
 
-    Livewire::actingAs($band)
+    Livewire::actingAs($artist)
         ->test(ManageEvent::class)
         ->set(['form.date' => '2026-10-17', 'form.location' => 'The Park'])
         ->call('next')
         ->call('next')
         ->assertSee('Host')
-        ->assertSee($band->displayName());
+        ->assertSee($artist->displayName());
 });
 
 test('back goes to the previous step, or out of the wizard from the first', function () {

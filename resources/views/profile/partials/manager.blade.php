@@ -1,4 +1,4 @@
-{{-- Expects $profile: a VenueProfile or BandProfile (or null). --}}
+{{-- Expects $profile: a VenueProfile or ArtistProfile (or null). --}}
 <x-profile-section :title="__('Manager Contact')">
     @if ($editing)
         @include('partials.profile-fields.manager')

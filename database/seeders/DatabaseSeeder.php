@@ -21,25 +21,25 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $venue = User::factory()->venue()->create(['name' => 'Demo Venue', 'email' => 'venue@example.com']);
-        $band = User::factory()->band()->create(['name' => 'Demo Band', 'email' => 'band@example.com']);
+        $artist = User::factory()->artist()->create(['name' => 'Demo Artist', 'email' => 'artist@example.com']);
         $organiser = User::factory()->organiser()->create(['name' => 'Demo Organiser', 'email' => 'organiser@example.com']);
         User::factory()->admin()->create(['name' => 'Admin', 'email' => 'admin@example.com']);
 
-        $band->bandProfile->update(['booking_fee' => 2500, 'accepts_door_split' => true]);
-        $this->seedBandEvents($band);
+        $artist->artistProfile->update(['booking_fee' => 2500, 'accepts_door_split' => true]);
+        $this->seedArtistEvents($artist);
 
         $venue->events()->create($this->event(
             'Open Mic Night', 'Monthly open mic, all genres welcome.', $venue->venueProfile->location, 10, '19:00', 50, EventStatus::Draft,
-        ) + ['venue_profile_id' => $venue->venueProfile->id, 'band_slots' => 3]);
+        ) + ['venue_profile_id' => $venue->venueProfile->id, 'artist_slots' => 3]);
 
         $organiser->events()->create($this->event(
             'Summer Sounds Festival', 'Two stages, twelve acts, one long afternoon.', 'Green Point Park, Cape Town', 35, '12:00', 250, EventStatus::Draft,
-        ) + ['band_slots' => 5]);
+        ) + ['artist_slots' => 5]);
 
         // Free days on upcoming weekends, so the calendar (and searching who is free) has something to show.
         $availability = app(UpdateAvailability::class);
         $availability->markFree($venue, $this->upcomingWeekendDays(4, [CarbonInterface::FRIDAY, CarbonInterface::SATURDAY]));
-        $availability->markFree($band, $this->upcomingWeekendDays(3, [CarbonInterface::FRIDAY, CarbonInterface::SATURDAY, CarbonInterface::SUNDAY]));
+        $availability->markFree($artist, $this->upcomingWeekendDays(3, [CarbonInterface::FRIDAY, CarbonInterface::SATURDAY, CarbonInterface::SUNDAY]));
         $availability->markFree($organiser, $this->upcomingWeekendDays(2, [CarbonInterface::SATURDAY]));
 
         $this->call([DiscoverDemoSeeder::class, BookingDemoSeeder::class]);
@@ -67,7 +67,7 @@ class DatabaseSeeder extends Seeder
     /**
      * The prototype's sample events, scheduled relative to today so there is always something upcoming and past.
      */
-    private function seedBandEvents(User $band): void
+    private function seedArtistEvents(User $artist): void
     {
         $events = [
             ['Headline Show - The Loft', 'Our biggest headline show of the year, with support from two local acts.', 'The Loft, Cape Town', 14, '20:00', 150, EventStatus::Draft],
@@ -81,7 +81,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($events as $event) {
-            $band->events()->create($this->event(...$event));
+            $artist->events()->create($this->event(...$event));
         }
     }
 

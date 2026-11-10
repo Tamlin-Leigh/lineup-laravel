@@ -10,7 +10,7 @@ use App\Models\User;
 class EventPolicy
 {
     /**
-     * Venues, bands and organisers all run events; admins only oversee them.
+     * Venues, artists and organisers all run events; admins only oversee them.
      */
     public function create(User $user): bool
     {
@@ -19,7 +19,7 @@ class EventPolicy
 
     /**
      * Published events are public; drafts and cancelled events only to their owner (and admins), and
-     * to the bands and venues asked to take part, so they can see what they're agreeing to.
+     * to the artists and venues asked to take part, so they can see what they're agreeing to.
      */
     public function view(User $user, Event $event): bool
     {
@@ -31,6 +31,16 @@ class EventPolicy
     public function update(User $user, Event $event): bool
     {
         return $user->id === $event->user_id || $user->role === UserRole::Admin;
+    }
+
+    /**
+     * Who's been invited is only for the people organising the event and those invited to it, even
+     * once the event itself is public.
+     */
+    public function viewInvitedArtists(User $user, Event $event): bool
+    {
+        return $this->update($user, $event)
+            || $event->bookingRequests()->where('recipient_id', $user->id)->exists();
     }
 
     /**

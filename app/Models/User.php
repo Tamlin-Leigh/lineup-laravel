@@ -92,7 +92,7 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Requests from other accounts to play at (bands) or host (venues) their events.
+     * Requests from other accounts to play at (artists) or host (venues) their events.
      *
      * @return HasMany<BookingRequest, $this>
      */
@@ -102,7 +102,7 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Who this account can ask to take part in its events. Every host books bands; bands and
+     * Who this account can ask to take part in its events. Every host books artists; artists and
      * organisers also need a venue, while a venue's events are at its own venue.
      *
      * @return list<UserRole>
@@ -110,8 +110,8 @@ class User extends Authenticatable implements MustVerifyEmail
     public function bookableRoles(): array
     {
         return match ($this->role) {
-            UserRole::Venue => [UserRole::Band],
-            UserRole::Band, UserRole::Organiser => [UserRole::Venue, UserRole::Band],
+            UserRole::Venue => [UserRole::Artist],
+            UserRole::Artist, UserRole::Organiser => [UserRole::Venue, UserRole::Artist],
             UserRole::Admin => [],
         };
     }
@@ -122,11 +122,11 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Bands and venues are booked; organisers only book others.
+     * Artists and venues are booked; organisers only book others.
      */
     public function canReceiveBookingRequests(): bool
     {
-        return in_array($this->role, [UserRole::Band, UserRole::Venue], true);
+        return in_array($this->role, [UserRole::Artist, UserRole::Venue], true);
     }
 
     /**
@@ -166,11 +166,11 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * @return HasOne<BandProfile, $this>
+     * @return HasOne<ArtistProfile, $this>
      */
-    public function bandProfile(): HasOne
+    public function artistProfile(): HasOne
     {
-        return $this->hasOne(BandProfile::class);
+        return $this->hasOne(ArtistProfile::class);
     }
 
     /**
@@ -182,12 +182,12 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * The name others see: the band's or organisation's name where there is one.
+     * The name others see: the artist's or organisation's name where there is one.
      */
     public function displayName(): string
     {
         return match ($this->role) {
-            UserRole::Band => $this->bandProfile->band_name ?? $this->name,
+            UserRole::Artist => $this->artistProfile->artist_name ?? $this->name,
             UserRole::Organiser => $this->organiserProfile->org_name ?? $this->name,
             default => $this->name,
         };

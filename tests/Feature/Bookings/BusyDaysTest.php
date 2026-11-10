@@ -56,47 +56,47 @@ test('hosting an event takes the host off the free list for that day', function 
         ->assertHasNoErrors();
 
     expect(freeDatesOf($host))->toBe(['2026-10-18']);
-})->with(['band', 'venue', 'organiser'])->with([EventStatus::Draft->value]);
+})->with(['artist', 'venue', 'organiser'])->with([EventStatus::Draft->value]);
 
 test('moving an event to another day takes that day off the free list too', function () {
-    $band = User::factory()->band()->create();
-    $event = Event::factory()->for($band, 'owner')->create(['starts_at' => '2026-10-17 20:00']);
-    Availability::factory()->for($band)->create(['date' => '2026-10-24']);
+    $artist = User::factory()->artist()->create();
+    $event = Event::factory()->for($artist, 'owner')->create(['starts_at' => '2026-10-17 20:00']);
+    Availability::factory()->for($artist)->create(['date' => '2026-10-24']);
 
-    Livewire::actingAs($band)
+    Livewire::actingAs($artist)
         ->test(ManageEvent::class, ['event' => $event])
         ->set('form.date', '2026-10-24')
         ->call('save')
         ->assertHasNoErrors();
 
-    expect(freeDatesOf($band))->toBe([]);
+    expect(freeDatesOf($artist))->toBe([]);
 });
 
 test('a day you are hosting or booked for cannot be marked free', function () {
-    $band = User::factory()->band()->create();
-    Event::factory()->for($band, 'owner')->create(['starts_at' => '2026-10-17 20:00']);
-    BookingRequest::factory()->for($band, 'recipient')
+    $artist = User::factory()->artist()->create();
+    Event::factory()->for($artist, 'owner')->create(['starts_at' => '2026-10-17 20:00']);
+    BookingRequest::factory()->for($artist, 'recipient')
         ->for(Event::factory()->state(['user_id' => User::factory()->venue(), 'starts_at' => '2026-10-18 20:00']))
         ->accepted()
         ->create();
-    Event::factory()->for($band, 'owner')->cancelled()->create(['starts_at' => '2026-10-16 20:00']);
+    Event::factory()->for($artist, 'owner')->cancelled()->create(['starts_at' => '2026-10-16 20:00']);
 
     $availability = app(UpdateAvailability::class);
 
-    expect($availability->toggle($band, Carbon::parse('2026-10-17')))->toBeFalse()
-        ->and($availability->markFree($band, [Carbon::parse('2026-10-16'), Carbon::parse('2026-10-17'), Carbon::parse('2026-10-18'), Carbon::parse('2026-10-19')]))->toBe(2)
-        ->and(freeDatesOf($band))->toBe(['2026-10-16', '2026-10-19']);
+    expect($availability->toggle($artist, Carbon::parse('2026-10-17')))->toBeFalse()
+        ->and($availability->markFree($artist, [Carbon::parse('2026-10-16'), Carbon::parse('2026-10-17'), Carbon::parse('2026-10-18'), Carbon::parse('2026-10-19')]))->toBe(2)
+        ->and(freeDatesOf($artist))->toBe(['2026-10-16', '2026-10-19']);
 });
 
 test('the calendar shows events you are booked for, linking to your bookings', function () {
-    $band = User::factory()->band()->create();
-    $own = Event::factory()->for($band, 'owner')->create(['title' => 'Our Own Show', 'starts_at' => '2026-10-17 20:00']);
+    $artist = User::factory()->artist()->create();
+    $own = Event::factory()->for($artist, 'owner')->create(['title' => 'Our Own Show', 'starts_at' => '2026-10-17 20:00']);
     $booked = Event::factory()->for(User::factory()->venue(), 'owner')->create(['title' => 'Booked Gig', 'starts_at' => '2026-10-24 20:00']);
-    BookingRequest::factory()->for($band, 'recipient')->for($booked)->accepted()->create();
+    BookingRequest::factory()->for($artist, 'recipient')->for($booked)->accepted()->create();
     $declined = Event::factory()->for(User::factory()->venue(), 'owner')->create(['title' => 'Declined Gig', 'starts_at' => '2026-10-25 20:00']);
-    BookingRequest::factory()->for($band, 'recipient')->for($declined)->declined()->create();
+    BookingRequest::factory()->for($artist, 'recipient')->for($declined)->declined()->create();
 
-    Livewire::actingAs($band)
+    Livewire::actingAs($artist)
         ->test(Calendar::class)
         ->assertSee('Our Own Show')
         ->assertSee('Booked Gig')
@@ -107,12 +107,12 @@ test('the calendar shows events you are booked for, linking to your bookings', f
 });
 
 test('the calendar shows requests waiting for your reply', function () {
-    $band = User::factory()->band()->create();
-    $waiting = BookingRequest::factory()->for($band, 'recipient')
+    $artist = User::factory()->artist()->create();
+    $waiting = BookingRequest::factory()->for($artist, 'recipient')
         ->for(Event::factory()->state(['user_id' => User::factory()->venue(), 'title' => 'Open Mic', 'starts_at' => '2026-10-17 19:00']))
         ->create();
 
-    Livewire::actingAs($band)
+    Livewire::actingAs($artist)
         ->test(Calendar::class)
         ->assertSeeHtml('data-test="calendar-request-'.$waiting->id.'"')
         ->assertSee('Request waiting for your reply');

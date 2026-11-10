@@ -26,14 +26,14 @@ use Livewire\Component;
 
 /**
  * Create a new event (optionally on a date picked in the calendar) or edit an existing one, and
- * send booking requests to the bands (and, for bands and organisers, the venue) free on its date.
+ * send booking requests to the artists (and, for artists and organisers, the venue) free on its date.
  * This is the one place booking happens, for every role.
  *
  * A new event is a short wizard in the order the choices depend on each other: when (which decides
  * who is free), where (a free venue, or somewhere else), the line-up, then the details. Editing is
  * a single page.
  *
- * @property-read Collection<int, User> $freeBands
+ * @property-read Collection<int, User> $freeArtists
  * @property-read Collection<int, User> $freeVenues
  */
 class ManageEvent extends Component
@@ -55,18 +55,18 @@ class ManageEvent extends Component
     public string $date = '';
 
     /**
-     * Bands ticked to receive a booking request when the event is saved.
+     * Artists ticked to receive a booking request when the event is saved.
      *
      * @var list<string>
      */
-    public array $bandIds = [];
+    public array $artistIds = [];
 
     /** The venue picked to host the event (an event has one venue), or ''. */
     public string $venueId = '';
 
     public string $bookingMessage = '';
 
-    public string $bandSearch = '';
+    public string $artistSearch = '';
 
     public string $venueSearch = '';
 
@@ -133,7 +133,7 @@ class ManageEvent extends Component
             'when' => $this->form->validateFields(['date', 'time']),
             // Somewhere else needs a location; a venue's location is filled in from the venue.
             'where' => $this->venueId === '' ? $this->form->validateFields(['location']) : null,
-            'line-up' => $this->validateBandSlots(),
+            'line-up' => $this->validateArtistSlots(),
             default => null,
         };
 
@@ -160,20 +160,20 @@ class ManageEvent extends Component
     }
 
     /**
-     * Band slots already spoken for: the host band (if a band is hosting) plus, on an existing event,
-     * the bands that accepted or are still deciding.
+     * Artist slots already spoken for: the host artist (if an artist is hosting) plus, on an existing event,
+     * the artists that accepted or are still deciding.
      */
-    public function takenBandSlots(): int
+    public function takenArtistSlots(): int
     {
-        return $this->event?->takenBandSlots() ?? ($this->user()->role === UserRole::Band ? 1 : 0);
+        return $this->event?->takenArtistSlots() ?? ($this->user()->role === UserRole::Artist ? 1 : 0);
     }
 
     /**
-     * How many more bands can be asked, given the number of band slots in the form.
+     * How many more artists can be asked, given the number of artist slots in the form.
      */
-    public function openBandSlots(): int
+    public function openArtistSlots(): int
     {
-        return max(0, (int) $this->form->band_slots - $this->takenBandSlots());
+        return max(0, (int) $this->form->artist_slots - $this->takenArtistSlots());
     }
 
     /**
@@ -184,11 +184,11 @@ class ManageEvent extends Component
      */
     public function publishBlockers(): array
     {
-        $slots = (int) $this->form->band_slots;
+        $slots = (int) $this->form->artist_slots;
         $blockers = $this->event?->publishBlockers($slots) ?? [];
 
-        if ($this->event === null && $this->takenBandSlots() < $slots) {
-            $blockers[] = trans_choice(':confirmed of :count band confirmed.|:confirmed of :count bands confirmed.', $slots, ['confirmed' => $this->takenBandSlots(), 'count' => $slots]);
+        if ($this->event === null && $this->takenArtistSlots() < $slots) {
+            $blockers[] = trans_choice(':confirmed of :count artist confirmed.|:confirmed of :count artists confirmed.', $slots, ['confirmed' => $this->takenArtistSlots(), 'count' => $slots]);
         }
 
         if ($this->recipientIds() !== []) {
@@ -215,7 +215,7 @@ class ManageEvent extends Component
     {
         $ids = array_map('intval', $this->recipientIds());
 
-        return $this->freeVenues->concat($this->freeBands)
+        return $this->freeVenues->concat($this->freeArtists)
             ->filter(fn (User $account) => in_array($account->id, $ids, true))
             ->values();
     }
@@ -225,10 +225,10 @@ class ManageEvent extends Component
      */
     public function updatedFormDate(): void
     {
-        unset($this->freeBands, $this->freeVenues);
+        unset($this->freeArtists, $this->freeVenues);
 
-        $free = $this->freeBands->pluck('id')->map(fn (int $id) => (string) $id)->all();
-        $this->bandIds = array_values(array_intersect($this->bandIds, $free));
+        $free = $this->freeArtists->pluck('id')->map(fn (int $id) => (string) $id)->all();
+        $this->artistIds = array_values(array_intersect($this->artistIds, $free));
 
         if (! $this->freeVenues->contains('id', (int) $this->venueId)) {
             $this->venueId = '';
@@ -245,7 +245,7 @@ class ManageEvent extends Component
 
         $attributes = $this->form->attributes($isNew);
         $recipientIds = $this->recipientIds();
-        $this->validateBandSlots();
+        $this->validateArtistSlots();
         $this->validateBooking($attributes, $recipientIds);
         $this->validatePublishing($attributes);
 
@@ -295,7 +295,7 @@ class ManageEvent extends Component
     }
 
     /**
-     * Bands and organisers can ask a venue to host, while the event doesn't have one yet.
+     * Artists and organisers can ask a venue to host, while the event doesn't have one yet.
      */
     public function canBookVenue(): bool
     {
@@ -305,15 +305,15 @@ class ManageEvent extends Component
     }
 
     /**
-     * Bands free on the chosen date who haven't been asked for this event yet.
+     * Artists free on the chosen date who haven't been asked for this event yet.
      *
      * @return Collection<int, User>
      */
     #[Computed]
-    public function freeBands(): Collection
+    public function freeArtists(): Collection
     {
         return $this->canSendBookingRequests()
-            ? $this->freeAccounts(UserRole::Band, $this->bandSearch)
+            ? $this->freeAccounts(UserRole::Artist, $this->artistSearch)
             : new Collection;
     }
 
@@ -331,7 +331,7 @@ class ManageEvent extends Component
     }
 
     /**
-     * The bands playing. A band creating an event is on its line-up from the start.
+     * The artists playing. An artist creating an event is on its line-up from the start.
      *
      * @return Collection<int, User>
      */
@@ -342,13 +342,13 @@ class ManageEvent extends Component
             return $this->event->lineUp();
         }
 
-        return $this->user()->role === UserRole::Band
-            ? new Collection([$this->user()->loadMissing('bandProfile')])
+        return $this->user()->role === UserRole::Artist
+            ? new Collection([$this->user()->loadMissing('artistProfile')])
             : new Collection;
     }
 
     /**
-     * Bands and venues already asked to take part in this event.
+     * Artists and venues already asked to take part in this event.
      *
      * @return Collection<int, BookingRequest>
      */
@@ -360,7 +360,7 @@ class ManageEvent extends Component
         }
 
         return $this->event->bookingRequests()
-            ->with(['event.owner', 'recipient.bandProfile', 'recipient.venueProfile'])
+            ->with(['event.owner', 'recipient.artistProfile', 'recipient.venueProfile'])
             ->latest()
             ->get();
     }
@@ -412,31 +412,31 @@ class ManageEvent extends Component
      */
     private function recipientIds(): array
     {
-        return array_values(array_filter([...$this->bandIds, $this->venueId]));
+        return array_values(array_filter([...$this->artistIds, $this->venueId]));
     }
 
     /**
-     * The number of band slots can't drop below the bands already playing or asked (a band hosting
-     * counts as one), and no more bands can be ticked than there are open slots.
+     * The number of artist slots can't drop below the artists already playing or asked (an artist hosting
+     * counts as one), and no more artists can be ticked than there are open slots.
      */
-    private function validateBandSlots(): void
+    private function validateArtistSlots(): void
     {
-        $this->form->validateFields(['band_slots'], $this->event === null);
+        $this->form->validateFields(['artist_slots'], $this->event === null);
 
-        $taken = $this->takenBandSlots();
+        $taken = $this->takenArtistSlots();
 
-        if ((int) $this->form->band_slots < max(1, $taken)) {
-            // Only the owner edits an event, so a band here is the host band, already taking a slot.
-            throw ValidationException::withMessages(['form.band_slots' => $this->user()->role === UserRole::Band && $taken === 1
-                ? __('Your band is one of the bands playing, so this has to be at least 1.')
-                : trans_choice('At least :count band is already playing or has been asked.|At least :count bands are already playing or have been asked.', $taken)]);
+        if ((int) $this->form->artist_slots < max(1, $taken)) {
+            // Only the owner edits an event, so an artist here is the host artist, already taking a slot.
+            throw ValidationException::withMessages(['form.artist_slots' => $this->user()->role === UserRole::Artist && $taken === 1
+                ? __('You are one of the artists playing, so this has to be at least 1.')
+                : trans_choice('At least :count artist is already playing or has been asked.|At least :count artists are already playing or have been asked.', $taken)]);
         }
 
-        $open = $this->openBandSlots();
+        $open = $this->openArtistSlots();
 
-        if (count($this->bandIds) > $open) {
-            throw ValidationException::withMessages(['bandIds' => trans_choice(
-                '{0} There are no band slots left. Add more slots to ask another band.|{1} There is only :count band slot left, so tick one band.|[2,*] There are only :count band slots left, so tick up to :count bands.',
+        if (count($this->artistIds) > $open) {
+            throw ValidationException::withMessages(['artistIds' => trans_choice(
+                '{0} There are no artist slots left. Add more slots to ask another artist.|{1} There is only :count artist slot left, so tick one artist.|[2,*] There are only :count artist slots left, so tick up to :count artists.',
                 $open,
             )]);
         }
@@ -471,8 +471,8 @@ class ManageEvent extends Component
         }
 
         $this->validate([
-            'bandIds' => ['array', 'max:50'],
-            'bandIds.*' => ['integer'],
+            'artistIds' => ['array', 'max:50'],
+            'artistIds.*' => ['integer'],
             'venueId' => ['nullable', 'integer'],
             'bookingMessage' => ['nullable', 'string', 'max:500'],
         ], attributes: ['bookingMessage' => __('message')]);

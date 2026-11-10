@@ -57,8 +57,8 @@
 
         <div class="max-w-2xl">
             @switch($user->role)
-                @case(UserRole::Band)
-                    @include('profile.band', ['band' => $user->bandProfile])
+                @case(UserRole::Artist)
+                    @include('profile.artist', ['artist' => $user->artistProfile])
                     @break
 
                 @case(UserRole::Venue)

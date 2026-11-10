@@ -5,7 +5,7 @@ namespace App\Enums;
 use App\Concerns\HasEnumOptions;
 
 /**
- * Where a request to book a band for an event stands. A request the band hasn't answered within
+ * Where a request to book an artist for an event stands. A request the artist hasn't answered within
  * its deadline counts as expired even before the scheduled `bookings:expire` run stores it.
  */
 enum BookingStatus: string

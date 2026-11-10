@@ -35,7 +35,7 @@ class Register extends Component
         'manager' => 'Manager Details',
         'venue' => 'Venue Details',
         'event-days' => 'Event Preferences',
-        'band' => 'Band Details',
+        'artist' => 'Artist Details',
         'links' => 'Links',
         'organiser' => 'Organiser Details',
     ];

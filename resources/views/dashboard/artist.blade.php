@@ -10,9 +10,9 @@
 
     @include('dashboard.upcoming-events')
 
-    <x-profile-section :title="__('Your Band')">
-        <p class="font-semibold text-zinc-900 dark:text-white">{{ $band->band_name }}</p>
-        <flux:text>{{ trans_choice(':count member|:count members', $band->member_count) }} &middot; {{ $band->genre }}</flux:text>
+    <x-profile-section :title="__('Your Artist Profile')">
+        <p class="font-semibold text-zinc-900 dark:text-white">{{ $artist->artist_name }}</p>
+        <flux:text>{{ trans_choice(':count member|:count members', $artist->member_count) }} &middot; {{ $artist->genre }}</flux:text>
         <div>
             <flux:link :href="route('profile.show')" wire:navigate class="text-sm">{{ __('Edit profile') }}</flux:link>
         </div>

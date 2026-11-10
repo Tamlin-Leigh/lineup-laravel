@@ -20,14 +20,14 @@ class EventFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => User::factory()->band(),
+            'user_id' => User::factory()->artist(),
             'venue_profile_id' => null,
             'title' => ucwords(rtrim(fake()->sentence(3), '.')),
             'description' => fake()->sentence(12),
             'location' => fake()->city(),
             'starts_at' => now()->addDays(fake()->numberBetween(1, 60))->setTime(fake()->numberBetween(17, 22), 0),
             'price' => fake()->randomElement([0, 60, 90, 120, 150, 180]),
-            'band_slots' => 3,
+            'artist_slots' => 3,
             'status' => EventStatus::Published,
         ];
     }

@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class BookingRequestFactory extends Factory
 {
     /**
-     * Define the model's default state: a venue's event waiting on a band's reply.
+     * Define the model's default state: a venue's event waiting on an artist's reply.
      *
      * @return array<string, mixed>
      */
@@ -22,7 +22,7 @@ class BookingRequestFactory extends Factory
     {
         return [
             'event_id' => Event::factory()->state(fn () => ['user_id' => User::factory()->venue()]),
-            'recipient_id' => User::factory()->band(),
+            'recipient_id' => User::factory()->artist(),
             'status' => BookingStatus::Requested,
             'message' => null,
             'expires_at' => now()->addDays(BookingRequest::REPLY_DAYS),
@@ -31,13 +31,13 @@ class BookingRequestFactory extends Factory
     }
 
     /**
-     * A band's event asking a venue to host it. States override for(), so set the event or
+     * An artist's event asking a venue to host it. States override for(), so set the event or
      * recipient explicitly instead of combining them with this.
      */
     public function toVenue(): static
     {
         return $this->state(fn () => [
-            'event_id' => Event::factory()->state(fn () => ['user_id' => User::factory()->band()]),
+            'event_id' => Event::factory()->state(fn () => ['user_id' => User::factory()->artist()]),
             'recipient_id' => User::factory()->venue(),
         ]);
     }

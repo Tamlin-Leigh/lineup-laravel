@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Restricts a route to one or more roles, e.g. `role:admin` or `role:band,venue`.
+ * Restricts a route to one or more roles, e.g. `role:admin` or `role:artist,venue`.
  */
 class EnsureUserHasRole
 {

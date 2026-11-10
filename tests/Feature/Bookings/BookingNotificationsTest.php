@@ -45,7 +45,7 @@ test('booking updates are emailed and kept for the in-app bookings page', functi
         ]);
 });
 
-test('the reply email says whether the band accepted', function (string $state, string $expected) {
+test('the reply email says whether the artist accepted', function (string $state, string $expected) {
     $booking = BookingRequest::factory()->{$state}()->create();
 
     expect((new BookingAnswered($booking))->toMail($booking->event->owner)->subject)->toContain($expected);

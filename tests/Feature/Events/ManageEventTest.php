@@ -22,7 +22,7 @@ function validEvent(): array
 }
 
 test('a user can create an event', function () {
-    $user = User::factory()->band()->create();
+    $user = User::factory()->artist()->create();
 
     Livewire::actingAs($user)
         ->test(ManageEvent::class)
@@ -39,15 +39,15 @@ test('a user can create an event', function () {
 });
 
 test('required fields are validated', function () {
-    Livewire::actingAs(User::factory()->band()->create())
+    Livewire::actingAs(User::factory()->artist()->create())
         ->test(ManageEvent::class)
-        ->set(['form.title' => '', 'form.location' => '', 'form.time' => '25:00', 'form.price' => '-5', 'form.band_slots' => '0'])
+        ->set(['form.title' => '', 'form.location' => '', 'form.time' => '25:00', 'form.price' => '-5', 'form.artist_slots' => '0'])
         ->call('save')
-        ->assertHasErrors(['form.title', 'form.location', 'form.time', 'form.price', 'form.band_slots']);
+        ->assertHasErrors(['form.title', 'form.location', 'form.time', 'form.price', 'form.artist_slots']);
 });
 
 test('a new event cannot start out cancelled', function () {
-    Livewire::actingAs(User::factory()->band()->create())
+    Livewire::actingAs(User::factory()->artist()->create())
         ->test(ManageEvent::class)
         ->set([...validEvent(), 'form.status' => EventStatus::Cancelled->value])
         ->call('save')
@@ -55,14 +55,14 @@ test('a new event cannot start out cancelled', function () {
 });
 
 test('the date picked in the calendar is pre-filled', function () {
-    Livewire::actingAs(User::factory()->band()->create())
+    Livewire::actingAs(User::factory()->artist()->create())
         ->withQueryParams(['date' => '2027-03-14'])
         ->test(ManageEvent::class)
         ->assertSet('form.date', '2027-03-14');
 });
 
 test('an invalid date in the link falls back to tomorrow', function () {
-    Livewire::actingAs(User::factory()->band()->create())
+    Livewire::actingAs(User::factory()->artist()->create())
         ->withQueryParams(['date' => 'not-a-date'])
         ->test(ManageEvent::class)
         ->assertSet('form.date', now()->addDay()->format('Y-m-d'));
@@ -82,7 +82,7 @@ test('venues hold their events at their own venue', function () {
 });
 
 test('other events are only linked to a LineUp venue once it accepts a booking request', function () {
-    $user = User::factory()->band()->create();
+    $user = User::factory()->artist()->create();
 
     Livewire::actingAs($user)
         ->test(ManageEvent::class)
@@ -111,7 +111,7 @@ test('the owner can edit and cancel an event', function () {
 test("users cannot edit someone else's event", function () {
     $event = Event::factory()->create();
 
-    $this->actingAs(User::factory()->band()->create())
+    $this->actingAs(User::factory()->artist()->create())
         ->get(route('events.edit', $event))
         ->assertForbidden();
 });

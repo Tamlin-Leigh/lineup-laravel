@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * Venues, bands and organisers who are free on at least one day in a date range: the core of
+ * Venues, artists and organisers who are free on at least one day in a date range: the core of
  * "who can I work with on that weekend?". Results carry the free days that fall in the range
  * (`availabilities`) and how many there are (`free_days_count`), most matching days first.
  */
@@ -39,7 +39,7 @@ class AvailableAccounts
             ->with([
                 'availabilities' => fn (HasMany $query) => $inRange($query)->orderBy('date'),
                 'venueProfile',
-                'bandProfile',
+                'artistProfile',
                 'organiserProfile',
             ])
             ->when(trim($search) !== '', fn (Builder $query) => $this->search($query, trim($search)))
@@ -48,7 +48,7 @@ class AvailableAccounts
     }
 
     /**
-     * Match the account name, band name or genre, organisation name, or venue location.
+     * Match the account name, artist name or genre, organisation name, or venue location.
      *
      * @param  Builder<User>  $query
      */
@@ -58,7 +58,7 @@ class AvailableAccounts
 
         $query->where(fn (Builder $query) => $query
             ->where('name', 'like', $like)
-            ->orWhereHas('bandProfile', fn (Builder $band) => $band->where('band_name', 'like', $like)->orWhere('genre', 'like', $like))
+            ->orWhereHas('artistProfile', fn (Builder $artist) => $artist->where('artist_name', 'like', $like)->orWhere('genre', 'like', $like))
             ->orWhereHas('venueProfile', fn (Builder $venue) => $venue->where('location', 'like', $like))
             ->orWhereHas('organiserProfile', fn (Builder $organiser) => $organiser->where('org_name', 'like', $like)));
     }

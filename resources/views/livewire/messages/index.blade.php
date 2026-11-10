@@ -6,7 +6,7 @@
 <div class="mx-auto flex w-full max-w-5xl flex-col gap-5">
     <div>
         <flux:heading size="xl" level="1">{{ __('Messages') }}</flux:heading>
-        <flux:text class="mt-1">{{ __('A private chat opens for each accepted booking, between the event\'s host and the band or venue.') }}</flux:text>
+        <flux:text class="mt-1">{{ __('A private chat opens for each accepted booking, between the event\'s host and the artist or venue.') }}</flux:text>
     </div>
 
     {{-- On larger screens the chat fills the window below the heading; the thread scrolls inside it. --}}

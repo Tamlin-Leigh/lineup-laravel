@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Database\Factories\BandProfileFactory;
+use Database\Factories\ArtistProfileFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -16,24 +16,24 @@ use Illuminate\Support\Carbon;
  * @property string $manager_name
  * @property string $manager_phone
  * @property string $manager_email
- * @property string $band_name
+ * @property string $artist_name
  * @property int $member_count
  * @property string $member_names
  * @property string $genre
  * @property string|null $bio
- * @property int|null $booking_fee Whole rand (ZAR); null when the band hasn't set one.
+ * @property int|null $booking_fee Whole rand (ZAR); null when the artist hasn't set one.
  * @property bool $accepts_door_split Open to playing for a share of the door or ticket sales.
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
 #[Fillable([
     'manager_name', 'manager_phone', 'manager_email',
-    'band_name', 'member_count', 'member_names', 'genre', 'bio',
+    'artist_name', 'member_count', 'member_names', 'genre', 'bio',
     'booking_fee', 'accepts_door_split',
 ])]
-class BandProfile extends Model
+class ArtistProfile extends Model
 {
-    /** @use HasFactory<BandProfileFactory> */
+    /** @use HasFactory<ArtistProfileFactory> */
     use HasFactory;
 
     /**
@@ -51,7 +51,7 @@ class BandProfile extends Model
     }
 
     /**
-     * The band's terms in a few words for hosts picking bands, e.g. "R2,500 fee · Open to door splits".
+     * The artist's terms in a few words for hosts picking artists, e.g. "R2,500 fee · Open to door splits".
      */
     public function bookingTerms(): string
     {

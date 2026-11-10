@@ -34,7 +34,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('profile', EditProfile::class)->name('profile.show');
     Route::get('profiles/{user}', PublicProfileController::class)->name('profiles.show');
 
-    Route::middleware('role:venue,band,organiser')->group(function () {
+    Route::middleware('role:venue,artist,organiser')->group(function () {
         Route::livewire('events', EventIndex::class)->name('events.index');
         Route::livewire('events/create', ManageEvent::class)->name('events.create');
         Route::livewire('events/{event}', EventShow::class)->whereNumber('event')->name('events.show');

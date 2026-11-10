@@ -8,7 +8,7 @@ use App\Models\User;
 class UserPolicy
 {
     /**
-     * Public profiles: any signed-in user may view a verified venue, band or organiser.
+     * Public profiles: any signed-in user may view a verified venue, artist or organiser.
      * Admins have no public profile.
      */
     public function view(User $user, User $model): bool

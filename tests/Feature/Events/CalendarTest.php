@@ -12,7 +12,7 @@ afterEach(function () {
 
 test('the calendar shows this month and the events in it', function () {
     Carbon::setTestNow('2026-10-08 09:00');
-    $user = User::factory()->band()->create();
+    $user = User::factory()->artist()->create();
     Event::factory()->for($user, 'owner')->create(['title' => 'October Gig', 'starts_at' => '2026-10-20 20:00']);
     Event::factory()->for($user, 'owner')->create(['title' => 'November Gig', 'starts_at' => '2026-11-03 20:00']);
 
@@ -26,7 +26,7 @@ test('the calendar shows this month and the events in it', function () {
 test('the month grid starts on Sunday and is made of whole weeks', function () {
     Carbon::setTestNow('2026-10-08 09:00');
 
-    $weeks = Livewire::actingAs(User::factory()->band()->create())
+    $weeks = Livewire::actingAs(User::factory()->artist()->create())
         ->test(Calendar::class)
         ->get('weeks');
 
@@ -38,7 +38,7 @@ test('the month grid starts on Sunday and is made of whole weeks', function () {
 
 test('users can move between months', function () {
     Carbon::setTestNow('2026-10-08 09:00');
-    $user = User::factory()->band()->create();
+    $user = User::factory()->artist()->create();
     Event::factory()->for($user, 'owner')->create(['title' => 'November Gig', 'starts_at' => '2026-11-03 20:00']);
 
     Livewire::actingAs($user)
@@ -55,7 +55,7 @@ test('users can move between months', function () {
 
 test('cancelled events and other users\' events are left off', function () {
     Carbon::setTestNow('2026-10-08 09:00');
-    $user = User::factory()->band()->create();
+    $user = User::factory()->artist()->create();
     Event::factory()->for($user, 'owner')->cancelled()->create(['title' => 'Called Off', 'starts_at' => '2026-10-20 20:00']);
     Event::factory()->create(['title' => 'Not Mine', 'starts_at' => '2026-10-21 20:00']);
 
@@ -67,7 +67,7 @@ test('cancelled events and other users\' events are left off', function () {
 
 test("today's events are listed beside the calendar", function () {
     Carbon::setTestNow('2026-10-08 09:00');
-    $user = User::factory()->band()->create();
+    $user = User::factory()->artist()->create();
     Event::factory()->for($user, 'owner')->create(['title' => 'Tonight', 'starts_at' => '2026-10-08 20:00']);
 
     $component = Livewire::actingAs($user)->test(Calendar::class);
@@ -78,7 +78,7 @@ test("today's events are listed beside the calendar", function () {
 test('a malformed month in the link falls back to the current month', function () {
     Carbon::setTestNow('2026-10-08 09:00');
 
-    Livewire::actingAs(User::factory()->band()->create())
+    Livewire::actingAs(User::factory()->artist()->create())
         ->withQueryParams(['month' => '2026-13'])
         ->test(Calendar::class)
         ->assertSee('October 2026');

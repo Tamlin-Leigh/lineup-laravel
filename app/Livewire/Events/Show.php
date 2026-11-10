@@ -13,10 +13,11 @@ use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 /**
- * An event's details, read-only. Bands and venues open it from a booking request to see what
+ * An event's details, read-only. Artists and venues open it from a booking request to see what
  * they're being asked to join, and can accept or decline from here too.
  *
  * @property-read Collection<int, User> $lineUp
+ * @property-read Collection<int, User> $invitedArtists
  * @property-read BookingRequest|null $booking
  */
 class Show extends Component
@@ -35,6 +36,19 @@ class Show extends Component
     public function lineUp(): Collection
     {
         return $this->event->lineUp();
+    }
+
+    /**
+     * Artists still deciding, for the accounts allowed to see them.
+     *
+     * @return Collection<int, User>
+     */
+    #[Computed]
+    public function invitedArtists(): Collection
+    {
+        return $this->user()->can('viewInvitedArtists', $this->event)
+            ? $this->event->invitedArtists()
+            : new Collection;
     }
 
     /**
@@ -84,7 +98,7 @@ class Show extends Component
     private function refresh(): void
     {
         $this->event->refresh();
-        unset($this->booking, $this->lineUp);
+        unset($this->booking, $this->lineUp, $this->invitedArtists);
     }
 
     private function user(): User

@@ -1,6 +1,6 @@
 {{--
     One booking request. On a received request (`for="received"`) you see whose event it is; on a
-    sent one (`for="sent"`) you see the band or venue you asked. With `showEvent` it also names the
+    sent one (`for="sent"`) you see the artist or venue you asked. With `showEvent` it also names the
     event and links to its details. Put buttons in the `actions` slot.
 --}}
 @props(['booking', 'for' => 'received', 'showEvent' => true])

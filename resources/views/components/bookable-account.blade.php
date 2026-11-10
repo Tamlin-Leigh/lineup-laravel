@@ -1,14 +1,14 @@
 {{--
-    A band or venue that can be picked for a booking request on the event form. `type` is
-    "checkbox" for bands (pick several) or "radio" for venues (an event has one venue). `limited`
+    An artist or venue that can be picked for a booking request on the event form. `type` is
+    "checkbox" for artists (pick several) or "radio" for venues (an event has one venue). `limited`
     stops unticked boxes being ticked once the surrounding x-data's left() reaches zero (it also
     needs a picked(id) there).
 --}}
 @props(['account', 'type' => 'checkbox', 'model', 'limited' => false])
 
 @php
-    $detail = $account->bandProfile
-        ? $account->bandProfile->genre.' · '.$account->bandProfile->bookingTerms()
+    $detail = $account->artistProfile
+        ? $account->artistProfile->genre.' · '.$account->artistProfile->bookingTerms()
         : ($account->venueProfile
             ? $account->venueProfile->location.' · '.__('Capacity :count', ['count' => number_format($account->venueProfile->capacity)])
             : '');

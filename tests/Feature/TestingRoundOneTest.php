@@ -27,7 +27,7 @@ test('the chosen role is still shown as selected after a server round trip', fun
     Livewire::test(Register::class)
         ->set(['email' => 'sam@example.com', 'password' => 'password', 'password_confirmation' => 'password'])
         ->call('next')
-        ->set(['role' => 'band', 'form.name' => ''])
+        ->set(['role' => 'artist', 'form.name' => ''])
         ->call('next')
         ->assertHasErrors('form.name')
         ->assertSeeHtml('aria-pressed="true"');
@@ -39,7 +39,7 @@ test('auth screens use the large shared submit button', function () {
 });
 
 test('the app is always light: no dark class and no appearance switcher', function () {
-    $this->actingAs(User::factory()->band()->create())
+    $this->actingAs(User::factory()->artist()->create())
         ->get(route('dashboard'))
         ->assertOk()
         ->assertDontSee('<html lang="en" class="dark">', false)
@@ -66,7 +66,7 @@ test('your own phone number cannot contain letters or a second plus', function (
     Livewire::test(Register::class)
         ->set(['email' => 'sam@example.com', 'password' => 'password', 'password_confirmation' => 'password'])
         ->call('next')
-        ->set(['form.name' => 'Sam', 'form.phone' => $phone, 'role' => 'band'])
+        ->set(['form.name' => 'Sam', 'form.phone' => $phone, 'role' => 'artist'])
         ->call('next')
         // This step reports role and phone errors together, so check the field rather than the rule.
         ->assertHasErrors(['form.phone'])
@@ -77,7 +77,7 @@ test('common phone formatting is still accepted', function () {
     Livewire::test(Register::class)
         ->set(['email' => 'sam@example.com', 'password' => 'password', 'password_confirmation' => 'password'])
         ->call('next')
-        ->set(['form.name' => 'Sam', 'form.phone' => '+27 (82) 123-4567', 'role' => 'band'])
+        ->set(['form.name' => 'Sam', 'form.phone' => '+27 (82) 123-4567', 'role' => 'artist'])
         ->call('next')
         ->assertHasNoErrors()
         ->assertSet('form.phone', '+27821234567');
@@ -108,6 +108,6 @@ test('manager and contact emails need a proper domain too', function (string $fi
         ->call('next')
         ->assertHasErrors([$field => 'email']);
 })->with([
-    'manager email' => ['form.manager_email', 'band'],
+    'manager email' => ['form.manager_email', 'artist'],
     'contact email' => ['form.contact_email', 'organiser'],
 ]);

@@ -9,7 +9,7 @@
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <x-stat-card :label="__('Venues')" :value="$roleCounts[UserRole::Venue->value]" icon="building-storefront" />
-            <x-stat-card :label="__('Bands')" :value="$roleCounts[UserRole::Band->value]" icon="musical-note" />
+            <x-stat-card :label="__('Artists')" :value="$roleCounts[UserRole::Artist->value]" icon="musical-note" />
             <x-stat-card :label="__('Organisers')" :value="$roleCounts[UserRole::Organiser->value]" icon="megaphone" />
         </div>
 

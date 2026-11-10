@@ -10,7 +10,7 @@ use Illuminate\Notifications\Notification;
 
 /**
  * Every booking update is emailed and also stored for the in-app Bookings page. Sent from the
- * queue so an owner booking several bands isn't kept waiting on the mail server.
+ * queue so an owner booking several artists isn't kept waiting on the mail server.
  */
 abstract class BookingNotification extends Notification implements ShouldQueue
 {
@@ -58,7 +58,7 @@ abstract class BookingNotification extends Notification implements ShouldQueue
     }
 
     /**
-     * Was a venue asked to host, rather than a band asked to play?
+     * Was a venue asked to host, rather than an artist asked to play?
      */
     protected function forVenue(): bool
     {
