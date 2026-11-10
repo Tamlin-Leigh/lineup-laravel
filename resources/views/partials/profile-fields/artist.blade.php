@@ -1,6 +1,8 @@
-<flux:input wire:model="form.artist_name" :label="__('Artist Name')" required :placeholder="__('Enter your artist\'s name')" />
+<flux:input wire:model="form.artist_name" :label="__('Artist Name')" required :placeholder="__('Enter your artist name')" />
 
 <flux:input wire:model="form.genre" :label="__('Genre')" required :placeholder="__('e.g. Rock, Jazz, Hip-Hop')" />
+
+@include('partials.profile-fields.region')
 
 <flux:textarea wire:model="form.bio" :label="__('Short Bio (optional)')" rows="3" :placeholder="__('Tell us a bit about the artist...')" />
 

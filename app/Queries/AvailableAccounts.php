@@ -2,6 +2,7 @@
 
 namespace App\Queries;
 
+use App\Enums\Region;
 use App\Enums\UserRole;
 use App\Models\User;
 use Carbon\CarbonInterface;
@@ -19,7 +20,7 @@ class AvailableAccounts
      * @param  list<UserRole>  $roles  Which roles to include; empty means every registrable role.
      * @return Builder<User>
      */
-    public function query(User $viewer, CarbonInterface $from, CarbonInterface $to, array $roles = [], string $search = ''): Builder
+    public function query(User $viewer, CarbonInterface $from, CarbonInterface $to, array $roles = [], string $search = '', ?Region $region = null): Builder
     {
         // array_intersect() compares as strings, which enum cases can't be; filter strictly instead.
         $roles = array_values(array_filter(
@@ -43,6 +44,9 @@ class AvailableAccounts
                 'organiserProfile',
             ])
             ->when(trim($search) !== '', fn (Builder $query) => $this->search($query, trim($search)))
+            ->when($region, fn (Builder $query, Region $region) => $query->where(fn (Builder $query) => $query
+                ->whereRelation('artistProfile', 'region', $region)
+                ->orWhereRelation('venueProfile', 'region', $region)))
             ->orderByDesc('free_days_count')
             ->orderBy('name');
     }

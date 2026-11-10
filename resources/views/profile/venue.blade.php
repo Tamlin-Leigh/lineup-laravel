@@ -13,6 +13,8 @@
         <x-profile-section :title="__('Venue Details')">
             <p class="text-zinc-900">{{ __('Capacity: :count', ['count' => number_format($venue->capacity)]) }}</p>
             <p class="text-zinc-900">{{ $venue->location }}</p>
+            <p class="text-zinc-900">{{ __('Region: :region', ['region' => $venue->region ? __($venue->region->label()) : __('Not set')]) }}</p>
+            <p class="text-zinc-900">{{ __('Stage size: :size', ['size' => $venue->stageSize() ?? __('Not set')]) }}</p>
             <p class="text-zinc-900">{{ __('Minimum door charge: R:amount', ['amount' => number_format($venue->min_door_charge)]) }}</p>
         </x-profile-section>
 

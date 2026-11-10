@@ -59,6 +59,12 @@
                     @endif
                 </div>
             </div>
+            @if ($event->region)
+                <p class="flex items-center gap-2 text-zinc-900" data-test="event-region">
+                    <flux:icon.globe-alt variant="micro" class="shrink-0 text-zinc-500" />
+                    {{ __('Region: :region', ['region' => __($event->region->label())]) }}
+                </p>
+            @endif
             <p class="flex items-center gap-2 text-zinc-900">
                 <flux:icon.ticket variant="micro" class="shrink-0 text-zinc-500" />
                 {{ __('Entry: :price', ['price' => $event->priceLabel()]) }}

@@ -25,7 +25,8 @@
 
     <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
         @foreach ($this->freeVenues as $freeVenue)
-            <x-bookable-account :account="$freeVenue" type="radio" model="venueId" wire:key="free-venue-{{ $freeVenue->id }}" data-test="free-venue-{{ $freeVenue->id }}" />
+            {{-- On the edit page the artists are listed below, and depend on the venue's region. --}}
+            <x-bookable-account :account="$freeVenue" type="radio" model="venueId" :live="! $withElsewhere" wire:key="free-venue-{{ $freeVenue->id }}" data-test="free-venue-{{ $freeVenue->id }}" />
         @endforeach
 
         @if ($withElsewhere)
@@ -50,7 +51,7 @@
         </div>
     @elseif ($this->freeVenues->isNotEmpty())
         <div x-show="$wire.venueId" x-cloak>
-            <flux:button size="sm" variant="ghost" x-on:click="$wire.venueId = ''">{{ __('Clear venue') }}</flux:button>
+            <flux:button size="sm" variant="ghost" x-on:click="$wire.set('venueId', '')">{{ __('Clear venue') }}</flux:button>
         </div>
     @endif
 </x-profile-section>

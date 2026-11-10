@@ -32,6 +32,8 @@ class EditProfile extends Component
         'manager_email' => 'manager',
         'capacity' => 'venue',
         'location' => 'venue',
+        'stage_width' => 'venue',
+        'stage_depth' => 'venue',
         'min_door_charge' => 'venue',
         'sound_engineer' => 'venue',
         'sound_engineer_name' => 'venue',
@@ -159,7 +161,8 @@ class EditProfile extends Component
     private function tabFor(string $errorKey): string
     {
         $field = explode('.', str_replace('form.', '', $errorKey))[0];
-        $tab = self::FIELD_TABS[$field] ?? 'account';
+        // Venues and artists both have a region, on the details tab named after their role.
+        $tab = $field === 'region' ? $this->user->role->value : (self::FIELD_TABS[$field] ?? 'account');
 
         return array_key_exists($tab, $this->tabs()) ? $tab : 'account';
     }

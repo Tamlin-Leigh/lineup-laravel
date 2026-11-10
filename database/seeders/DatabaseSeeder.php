@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Actions\UpdateAvailability;
 use App\Enums\EventStatus;
+use App\Enums\Region;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
@@ -25,6 +26,7 @@ class DatabaseSeeder extends Seeder
         $organiser = User::factory()->organiser()->create(['name' => 'Demo Organiser', 'email' => 'organiser@example.com']);
         User::factory()->admin()->create(['name' => 'Admin', 'email' => 'admin@example.com']);
 
+        $venue->venueProfile->update(['stage_width' => 6, 'stage_depth' => 4]);
         $artist->artistProfile->update(['booking_fee' => 2500, 'accepts_door_split' => true]);
         $this->seedArtistEvents($artist);
 
@@ -34,7 +36,7 @@ class DatabaseSeeder extends Seeder
 
         $organiser->events()->create($this->event(
             'Summer Sounds Festival', 'Two stages, twelve acts, one long afternoon.', 'Green Point Park, Cape Town', 35, '12:00', 250, EventStatus::Draft,
-        ) + ['artist_slots' => 5]);
+        ) + ['artist_slots' => 5, 'region' => Region::CapeTown]);
 
         // Free days on upcoming weekends, so the calendar (and searching who is free) has something to show.
         $availability = app(UpdateAvailability::class);

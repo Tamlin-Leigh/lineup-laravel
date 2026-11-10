@@ -3,6 +3,7 @@
 namespace App\Livewire\Forms;
 
 use App\Enums\EventStatus;
+use App\Enums\Region;
 use App\Models\Event;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
@@ -17,6 +18,9 @@ class EventForm extends Form
     public string $description = '';
 
     public string $location = '';
+
+    /** The region picked by hand: a Region value, or '' for every region. */
+    public string $region = '';
 
     public string $date = '';
 
@@ -35,6 +39,7 @@ class EventForm extends Form
             'title' => $event->title,
             'description' => (string) $event->description,
             'location' => $event->location,
+            'region' => (string) $event->region?->value,
             'date' => $event->starts_at->format('Y-m-d'),
             'time' => $event->starts_at->format('H:i'),
             'price' => (string) $event->price,
@@ -66,6 +71,7 @@ class EventForm extends Form
             'title' => $validated['title'],
             'description' => ($validated['description'] ?? '') ?: null,
             'location' => $validated['location'],
+            'region' => ($validated['region'] ?? '') ?: null,
             'starts_at' => Carbon::createFromFormat('Y-m-d H:i', "{$validated['date']} {$validated['time']}"),
             'price' => (int) $validated['price'],
             'artist_slots' => (int) $validated['artist_slots'],
@@ -82,6 +88,7 @@ class EventForm extends Form
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:2000'],
             'location' => ['required', 'string', 'max:255'],
+            'region' => ['nullable', Rule::enum(Region::class)],
             'date' => ['required', 'date_format:Y-m-d'],
             'time' => ['required', 'date_format:H:i'],
             'price' => ['required', 'integer', 'min:0', 'max:1000000'],

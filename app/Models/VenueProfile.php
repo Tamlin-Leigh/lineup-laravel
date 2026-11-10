@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\EventDay;
+use App\Enums\Region;
 use App\Enums\SoundEngineer;
 use Database\Factories\VenueProfileFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -22,7 +23,10 @@ use Illuminate\Support\Collection;
  * @property string $manager_phone
  * @property string $manager_email
  * @property int $capacity
+ * @property float|null $stage_width Metres; null when the venue hasn't given a stage size.
+ * @property float|null $stage_depth Metres; null when the venue hasn't given a stage size.
  * @property string $location
+ * @property Region|null $region Null only for accounts created before regions existed.
  * @property int $min_door_charge Whole rand (ZAR).
  * @property SoundEngineer $sound_engineer
  * @property string|null $sound_engineer_name
@@ -34,7 +38,7 @@ use Illuminate\Support\Collection;
  */
 #[Fillable([
     'manager_name', 'manager_phone', 'manager_email',
-    'capacity', 'location', 'min_door_charge',
+    'capacity', 'stage_width', 'stage_depth', 'location', 'region', 'min_door_charge',
     'sound_engineer', 'sound_engineer_name', 'has_own_equipment', 'equipment_details',
     'event_days',
 ])]
@@ -52,6 +56,9 @@ class VenueProfile extends Model
     {
         return [
             'capacity' => 'integer',
+            'stage_width' => 'float',
+            'stage_depth' => 'float',
+            'region' => Region::class,
             'min_door_charge' => 'integer',
             'sound_engineer' => SoundEngineer::class,
             'has_own_equipment' => 'boolean',
@@ -65,6 +72,16 @@ class VenueProfile extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * The stage as width by depth, e.g. "6 m × 4.5 m", or null if the venue hasn't given one.
+     */
+    public function stageSize(): ?string
+    {
+        return $this->stage_width !== null && $this->stage_depth !== null
+            ? "{$this->stage_width} m × {$this->stage_depth} m"
+            : null;
     }
 
     /**

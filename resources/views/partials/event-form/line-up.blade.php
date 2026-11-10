@@ -3,7 +3,11 @@
     stops once the open artist slots are used up, and lowering the number of artists unticks the latest
     picks that no longer fit (the server checks the same limit on save).
 --}}
-@php $taken = $this->takenArtistSlots(); @endphp
+@php
+    $taken = $this->takenArtistSlots();
+    $venueRegion = $this->venueRegion();
+    $eventRegion = $this->eventRegion();
+@endphp
 
 @include('partials.event-form.line-up-list')
 
@@ -52,6 +56,21 @@
         </flux:text>
     </div>
 
+    <div class="flex flex-col gap-3" data-test="event-region">
+        @if ($venueRegion)
+            <flux:switch wire:model.live="useVenueRegion" :label="__('Use the venue\'s region (:region)', ['region' => __($venueRegion->label())])" :description="__('Turn this off to book artists from another region.')" data-test="use-venue-region" />
+        @endif
+
+        @if (! $venueRegion || ! $useVenueRegion)
+            <flux:select wire:model.live="form.region" :label="__('Book artists from')" data-test="event-region-select">
+                <flux:select.option value="">{{ __('All regions') }}</flux:select.option>
+                @foreach (App\Enums\Region::options() as $value => $label)
+                    <flux:select.option value="{{ $value }}">{{ __($label) }}</flux:select.option>
+                @endforeach
+            </flux:select>
+        @endif
+    </div>
+
     <flux:text>
         {{ $freeOn
             ? __('Artists :free. Each one you tick is asked to play; artists that decline free up their slot again.', ['free' => $freeOn])
@@ -64,7 +83,13 @@
 
     @if ($this->freeArtists->isEmpty())
         <div class="rounded-xl border border-dashed border-zinc-300 p-5 text-center text-sm text-zinc-500">
-            {{ $artistSearch !== '' ? __('No free artists match your search.') : __('No artists have marked themselves free on this date yet.') }}
+            @if ($artistSearch !== '')
+                {{ __('No free artists match your search.') }}
+            @elseif ($eventRegion)
+                {{ __('No artists in :region have marked themselves free on this date yet. Try another region.', ['region' => __($eventRegion->label())]) }}
+            @else
+                {{ __('No artists have marked themselves free on this date yet.') }}
+            @endif
         </div>
     @else
         <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">

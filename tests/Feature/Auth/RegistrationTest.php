@@ -136,6 +136,7 @@ test('a venue can register', function () {
         ->set([
             'form.capacity' => '250',
             'form.location' => '12 Long Street, Cape Town',
+            'form.region' => 'cape-town',
             'form.min_door_charge' => '80',
             'form.sound_engineer' => SoundEngineer::InHouse->value,
             'form.sound_engineer_name' => 'Alex',
@@ -180,6 +181,7 @@ test('a venue with an in-house sound engineer must name them', function () {
         ->set([
             'form.capacity' => '250',
             'form.location' => 'Cape Town',
+            'form.region' => 'cape-town',
             'form.min_door_charge' => '0',
             'form.sound_engineer' => SoundEngineer::InHouse->value,
             'form.has_own_equipment' => false,
@@ -196,6 +198,7 @@ test('a venue must pick at least one event day', function () {
         ->set([
             'form.capacity' => '250',
             'form.location' => 'Cape Town',
+            'form.region' => 'cape-town',
             'form.min_door_charge' => '0',
             'form.sound_engineer' => SoundEngineer::None->value,
             'form.has_own_equipment' => false,
@@ -216,6 +219,7 @@ test('an artist can register with music and social links', function () {
             'form.member_count' => '4',
             'form.member_names' => 'Ann, Ben, Cat, Dan',
             'form.genre' => 'Rock',
+            'form.region' => 'johannesburg',
         ])
         ->call('next')
         ->assertHasNoErrors()
@@ -241,7 +245,7 @@ test('links must be real urls on a platform that fits their kind', function () {
     registerAs(UserRole::Artist)
         ->set(managerDetails())
         ->call('next')
-        ->set(['form.artist_name' => 'X', 'form.member_count' => '1', 'form.member_names' => 'X', 'form.genre' => 'Pop'])
+        ->set(['form.artist_name' => 'X', 'form.member_count' => '1', 'form.member_names' => 'X', 'form.genre' => 'Pop', 'form.region' => 'johannesburg'])
         ->call('next')
         ->set('form.music_links', [['platform' => LinkPlatform::Instagram->value, 'url' => 'javascript:alert(1)']])
         ->call('next')

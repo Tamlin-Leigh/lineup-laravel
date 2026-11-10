@@ -27,7 +27,7 @@
                 <flux:text class="mt-1">
                     @switch($user->role)
                         @case(UserRole::Venue) {{ $venue?->location }} @break
-                        @case(UserRole::Artist) {{ $artist?->genre }} @break
+                        @case(UserRole::Artist) {{ $artist?->genre }}@if ($artist?->region) &middot; {{ __($artist->region->label()) }} @endif @break
                         @default {{ $user->name }}
                     @endswitch
                 </flux:text>
@@ -54,7 +54,13 @@
             <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
                 <x-profile-section :title="__('Venue Details')">
                     <p class="text-zinc-900">{{ $venue->location }}</p>
+                    @if ($venue->region)
+                        <p class="text-zinc-900">{{ __('Region: :region', ['region' => __($venue->region->label())]) }}</p>
+                    @endif
                     <p class="text-zinc-900">{{ __('Capacity: :count', ['count' => number_format($venue->capacity)]) }}</p>
+                    @if ($venue->stageSize())
+                        <p class="text-zinc-900" data-test="stage-size">{{ __('Stage size: :size', ['size' => $venue->stageSize()]) }}</p>
+                    @endif
                     <p class="text-zinc-900">{{ __('Minimum door charge: R:amount', ['amount' => number_format($venue->min_door_charge)]) }}</p>
                 </x-profile-section>
 

@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Enums\Region;
 use App\Enums\UserRole;
 use App\Models\User;
 use App\Queries\AvailableAccounts;
@@ -54,6 +55,10 @@ class Discover extends Component
 
     #[Url(as: 'q')]
     public string $search = '';
+
+    /** A Region value, or '' for every region. */
+    #[Url]
+    public string $region = '';
 
     public function mount(): void
     {
@@ -129,7 +134,7 @@ class Discover extends Component
         $viewer = Auth::user();
 
         return app(AvailableAccounts::class)
-            ->query($viewer, $from, $to, $role ? [$role] : [], $this->search)
+            ->query($viewer, $from, $to, $role ? [$role] : [], $this->search, Region::tryFrom($this->region))
             ->paginate(self::PER_PAGE);
     }
 
