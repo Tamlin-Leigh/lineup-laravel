@@ -159,7 +159,7 @@ class Calendar extends Component
     }
 
     /**
-     * Requests waiting for the user's reply on events in the visible month, keyed by Y-m-d, so a band
+     * Requests waiting for the user's reply on events in the visible month, keyed by Y-m-d, so an artist
      * or venue can weigh them against the rest of their calendar.
      *
      * @return SupportCollection<string, Collection<int, BookingRequest>>

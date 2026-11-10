@@ -1,4 +1,4 @@
-{{-- Music links are band-only: include with ['socialOnly' => true] to show just the social repeater. --}}
+{{-- Music links are artist-only: include with ['socialOnly' => true] to show just the social repeater. --}}
 @unless ($socialOnly ?? false)
     <x-link-repeater field="music_links" :kind="App\Enums\LinkKind::Music" :label="__('Music Links (optional)')" :add-label="__('Add music link')" />
 @endunless

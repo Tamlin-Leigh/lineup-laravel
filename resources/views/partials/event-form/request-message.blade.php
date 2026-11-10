@@ -1,5 +1,5 @@
 {{-- The optional message sent with the booking requests; shown once someone is picked. --}}
-<div x-show="$wire.bandIds.length || $wire.venueId" x-cloak>
+<div x-show="$wire.artistIds.length || $wire.venueId" x-cloak>
     <x-profile-section :title="__('Booking Request')">
         <flux:text>
             {{ __('Everyone you picked gets an email and a request on their Bookings page, with :days days to accept or decline (or until the event, if sooner).', ['days' => App\Models\BookingRequest::REPLY_DAYS]) }}

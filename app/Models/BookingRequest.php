@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * An event's owner asking a band to play at it, or a venue to host it (see User::bookableRoles()).
+ * An event's owner asking an artist to play at it, or a venue to host it (see User::bookableRoles()).
  * The recipient has REPLY_DAYS (or until the event starts, if sooner) to accept or decline.
  *
  * @property int $id
@@ -58,7 +58,7 @@ class BookingRequest extends Model
     }
 
     /**
-     * The band or venue that was asked.
+     * The artist or venue that was asked.
      *
      * @return BelongsTo<User, $this>
      */

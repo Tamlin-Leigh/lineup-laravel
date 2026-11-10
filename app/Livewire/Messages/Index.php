@@ -110,8 +110,8 @@ class Index extends Component
         return Conversation::forUser($this->user())
             ->with([
                 'booking.event',
-                'owner.bandProfile', 'owner.organiserProfile',
-                'recipient.bandProfile', 'recipient.venueProfile',
+                'owner.artistProfile', 'owner.organiserProfile',
+                'recipient.artistProfile', 'recipient.venueProfile',
                 'latestMessage',
             ])
             ->get();
@@ -138,7 +138,7 @@ class Index extends Component
         }
 
         return $this->active->messages()
-            ->with('sender.bandProfile', 'sender.organiserProfile')
+            ->with('sender.artistProfile', 'sender.organiserProfile')
             ->latest('id')
             ->limit(self::HISTORY)
             ->get()

@@ -1,4 +1,4 @@
-{{-- The bands playing: the host band (if a band is hosting) and the bands that accepted. --}}
+{{-- The artists playing: the host artist (if an artist is hosting) and the artists that accepted. --}}
 @if ($this->lineUp->isNotEmpty())
     <x-profile-section :title="__('Line-up')" data-test="line-up">
         @foreach ($this->lineUp as $performer)
@@ -7,13 +7,13 @@
                 <x-user-avatar :user="$performer" class="size-10 text-xs" />
                 <span class="min-w-0 flex-1">
                     <span class="block truncate font-bold text-zinc-900">{{ $performer->displayName() }}</span>
-                    <span class="block truncate text-xs text-zinc-500">{{ $performer->bandProfile?->genre }}</span>
+                    <span class="block truncate text-xs text-zinc-500">{{ $performer->artistProfile?->genre }}</span>
                 </span>
                 <x-pill>{{ $isHost ? __('Host') : __('Booked') }}</x-pill>
             </div>
         @endforeach
         @if ($this->lineUp->count() === 1 && $this->lineUp->first()->id === auth()->id())
-            <flux:text size="sm">{{ __('Your band is playing as the host. Bands you ask below join the line-up once they accept.') }}</flux:text>
+            <flux:text size="sm">{{ __('You are playing as the host. Artists you ask below join the line-up once they accept.') }}</flux:text>
         @endif
     </x-profile-section>
 @endif

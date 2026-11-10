@@ -44,6 +44,9 @@
         @forelse ($results as $event)
             <x-event-card :event="$event" wire:key="event-{{ $event->id }}">
                 <x-slot:actions>
+                    @if ($event->canBePublished())
+                        <flux:button size="sm" variant="primary" wire:click="publish({{ $event->id }})" data-test="publish-event" aria-label="{{ __('Publish :title', ['title' => $event->title]) }}">{{ __('Publish') }}</flux:button>
+                    @endif
                     <flux:button size="sm" variant="ghost" icon="pencil-square" :href="route('events.edit', $event)" wire:navigate aria-label="{{ __('Edit :title', ['title' => $event->title]) }}" />
                     <flux:button
                         size="sm"

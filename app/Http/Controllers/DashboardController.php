@@ -24,7 +24,7 @@ class DashboardController extends Controller
 
         $user->load(match ($user->role) {
             UserRole::Venue => ['venueProfile'],
-            UserRole::Band => ['bandProfile'],
+            UserRole::Artist => ['artistProfile'],
             UserRole::Organiser => ['organiserProfile.links'],
         });
 

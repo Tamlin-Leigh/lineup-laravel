@@ -33,7 +33,7 @@ class ProfileForm extends Form
 
     public string $phone = '';
 
-    // Manager (venue + band)
+    // Manager (venue + artist)
     public string $manager_name = '';
 
     public string $manager_phone = '';
@@ -58,8 +58,8 @@ class ProfileForm extends Form
     /** @var list<string> */
     public array $event_days = [];
 
-    // Band
-    public string $band_name = '';
+    // Artist
+    public string $artist_name = '';
 
     public string $member_count = '';
 
@@ -74,7 +74,7 @@ class ProfileForm extends Form
 
     public bool $accepts_door_split = false;
 
-    // Links (band: music + social, venue and organiser: social)
+    // Links (artist: music + social, venue and organiser: social)
     /** @var list<array{platform: string, url: string}> */
     public array $music_links = [];
 
@@ -97,7 +97,7 @@ class ProfileForm extends Form
     {
         return match ($role) {
             UserRole::Venue => ['personal', 'manager', 'venue', 'event-days'],
-            UserRole::Band => ['personal', 'manager', 'band', 'links'],
+            UserRole::Artist => ['personal', 'manager', 'artist', 'links'],
             UserRole::Organiser => ['personal', 'organiser'],
             default => ['personal'],
         };
@@ -130,20 +130,20 @@ class ProfileForm extends Form
             ]);
         }
 
-        if ($band = $user->bandProfile) {
+        if ($artist = $user->artistProfile) {
             $this->fill([
-                'manager_name' => $band->manager_name,
-                'manager_phone' => $band->manager_phone,
-                'manager_email' => $band->manager_email,
-                'band_name' => $band->band_name,
-                'member_count' => (string) $band->member_count,
-                'member_names' => $band->member_names,
-                'genre' => $band->genre,
-                'bio' => (string) $band->bio,
-                'booking_fee' => (string) $band->booking_fee,
-                'accepts_door_split' => $band->accepts_door_split,
-                'music_links' => $this->linkRows($band->links, LinkKind::Music),
-                'social_links' => $this->linkRows($band->links, LinkKind::Social),
+                'manager_name' => $artist->manager_name,
+                'manager_phone' => $artist->manager_phone,
+                'manager_email' => $artist->manager_email,
+                'artist_name' => $artist->artist_name,
+                'member_count' => (string) $artist->member_count,
+                'member_names' => $artist->member_names,
+                'genre' => $artist->genre,
+                'bio' => (string) $artist->bio,
+                'booking_fee' => (string) $artist->booking_fee,
+                'accepts_door_split' => $artist->accepts_door_split,
+                'music_links' => $this->linkRows($artist->links, LinkKind::Music),
+                'social_links' => $this->linkRows($artist->links, LinkKind::Social),
             ]);
         }
 
@@ -209,8 +209,8 @@ class ProfileForm extends Form
                 'event_days' => ['required', 'array', 'min:1'],
                 'event_days.*' => ['distinct', Rule::enum(EventDay::class)],
             ],
-            'band' => [
-                'band_name' => ['required', 'string', 'max:255'],
+            'artist' => [
+                'artist_name' => ['required', 'string', 'max:255'],
                 'member_count' => ['required', 'integer', 'min:1', 'max:100'],
                 'member_names' => ['required', 'string', 'max:1000'],
                 'genre' => ['required', 'string', 'max:255'],

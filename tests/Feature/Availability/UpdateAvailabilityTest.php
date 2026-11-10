@@ -9,7 +9,7 @@ use Illuminate\Support\Carbon;
 beforeEach(function () {
     Carbon::setTestNow('2026-10-08 09:00');
     $this->action = app(UpdateAvailability::class);
-    $this->user = User::factory()->band()->create();
+    $this->user = User::factory()->artist()->create();
 });
 
 afterEach(function () {

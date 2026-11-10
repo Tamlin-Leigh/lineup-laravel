@@ -5,7 +5,7 @@ namespace App\Notifications;
 use Illuminate\Notifications\Messages\MailMessage;
 
 /**
- * Sent to a band or venue that was asked (or booked) for an event its owner has cancelled.
+ * Sent to an artist or venue that was asked (or booked) for an event its owner has cancelled.
  */
 class BookingCancelled extends BookingNotification
 {

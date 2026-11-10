@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 /**
- * The private chat for one accepted booking: the event's owner and the band or venue that
+ * The private chat for one accepted booking: the event's owner and the artist or venue that
  * accepted. It turns read-only once the booking or event is cancelled or the event has happened.
  *
  * @property int $id

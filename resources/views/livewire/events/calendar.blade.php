@@ -244,7 +244,7 @@
                     {{ $date->format('D j M') }}
                 </div>
             @empty
-                <flux:text>{{ __('You have not marked any free days yet. Venues, bands and organisers will be able to find you on the days you are free.') }}</flux:text>
+                <flux:text>{{ __('You have not marked any free days yet. Venues, artists and organisers will be able to find you on the days you are free.') }}</flux:text>
             @endforelse
 
             @if ($this->availabilityLooksStale())

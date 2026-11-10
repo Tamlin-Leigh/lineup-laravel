@@ -19,7 +19,7 @@ class AvailabilityFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => User::factory()->band(),
+            'user_id' => User::factory()->artist(),
             'date' => today()->addDays(fake()->unique()->numberBetween(1, 90)),
         ];
     }

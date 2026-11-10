@@ -5,11 +5,11 @@
         <div>
             <flux:heading size="xl" level="1">{{ __('Dashboard') }}</flux:heading>
             <flux:text class="mt-1">
-                {{ __('Welcome back, :name', ['name' => $user->bandProfile->band_name ?? $user->organiserProfile->org_name ?? $user->name]) }}
+                {{ __('Welcome back, :name', ['name' => $user->artistProfile->artist_name ?? $user->organiserProfile->org_name ?? $user->name]) }}
             </flux:text>
         </div>
 
-        @if (! ($user->venueProfile ?? $user->bandProfile ?? $user->organiserProfile))
+        @if (! ($user->venueProfile ?? $user->artistProfile ?? $user->organiserProfile))
             <flux:callout icon="user-circle" color="sky">
                 <flux:callout.heading>{{ __('Finish setting up your profile') }}</flux:callout.heading>
                 <flux:callout.text>{{ __('Add your details so others can find and book you.') }}</flux:callout.text>
@@ -19,8 +19,8 @@
             </flux:callout>
         @else
             @switch($user->role)
-                @case(UserRole::Band)
-                    @include('dashboard.band', ['band' => $user->bandProfile])
+                @case(UserRole::Artist)
+                    @include('dashboard.artist', ['artist' => $user->artistProfile])
                     @break
 
                 @case(UserRole::Venue)

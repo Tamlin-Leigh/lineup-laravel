@@ -9,7 +9,7 @@ enum UserRole: string
     use HasEnumOptions;
 
     case Venue = 'venue';
-    case Band = 'band';
+    case Artist = 'artist';
     case Organiser = 'organiser';
     case Admin = 'admin';
 
@@ -17,7 +17,7 @@ enum UserRole: string
     {
         return match ($this) {
             self::Venue => 'Venue',
-            self::Band => 'Band',
+            self::Artist => 'Artist',
             self::Organiser => 'Organiser',
             self::Admin => 'Admin',
         };
@@ -27,7 +27,7 @@ enum UserRole: string
     {
         return match ($this) {
             self::Venue => 'I manage a venue for live music',
-            self::Band => "I'm a musician or in a band",
+            self::Artist => "I'm a solo musician or in a group",
             self::Organiser => 'I organise music events',
             self::Admin => 'Platform administrator',
         };
@@ -40,6 +40,6 @@ enum UserRole: string
      */
     public static function registrable(): array
     {
-        return [self::Venue, self::Band, self::Organiser];
+        return [self::Venue, self::Artist, self::Organiser];
     }
 }

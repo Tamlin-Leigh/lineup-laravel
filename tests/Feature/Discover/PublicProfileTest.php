@@ -11,15 +11,15 @@ afterEach(function () {
 
 test('profiles show who someone is and when they are free', function () {
     Carbon::setTestNow('2026-10-08 09:00');
-    $band = User::factory()->band()->create();
-    Availability::factory()->for($band)->create(['date' => '2026-10-10']);
-    Event::factory()->for($band, 'owner')->create(['title' => 'Friday Late Show', 'starts_at' => '2026-10-16 21:00']);
-    Event::factory()->for($band, 'owner')->draft()->create(['title' => 'Secret Draft', 'starts_at' => '2026-10-23 21:00']);
+    $artist = User::factory()->artist()->create();
+    Availability::factory()->for($artist)->create(['date' => '2026-10-10']);
+    Event::factory()->for($artist, 'owner')->create(['title' => 'Friday Late Show', 'starts_at' => '2026-10-16 21:00']);
+    Event::factory()->for($artist, 'owner')->draft()->create(['title' => 'Secret Draft', 'starts_at' => '2026-10-23 21:00']);
 
     $this->actingAs(User::factory()->venue()->create())
-        ->get(route('profiles.show', $band))
+        ->get(route('profiles.show', $artist))
         ->assertOk()
-        ->assertSee($band->bandProfile->band_name)
+        ->assertSee($artist->artistProfile->artist_name)
         ->assertSee('Sat 10 Oct')
         ->assertSee('Friday Late Show')
         ->assertDontSee('Secret Draft');
@@ -27,9 +27,9 @@ test('profiles show who someone is and when they are free', function () {
 
 test('profiles never show contact details', function (string $state) {
     $user = User::factory()->{$state}()->create(['phone' => '0821234567']);
-    $profile = $user->venueProfile ?? $user->bandProfile ?? $user->organiserProfile;
+    $profile = $user->venueProfile ?? $user->artistProfile ?? $user->organiserProfile;
 
-    $response = $this->actingAs(User::factory()->band()->create())
+    $response = $this->actingAs(User::factory()->artist()->create())
         ->get(route('profiles.show', $user))
         ->assertOk()
         ->assertDontSee($user->email)
@@ -40,10 +40,10 @@ test('profiles never show contact details', function (string $state) {
             $response->assertDontSee($profile->{$field});
         }
     }
-})->with(['venue', 'band', 'organiser']);
+})->with(['venue', 'artist', 'organiser']);
 
 test('admins and unverified accounts have no public profile', function (User $user) {
-    $this->actingAs(User::factory()->band()->create())
+    $this->actingAs(User::factory()->artist()->create())
         ->get(route('profiles.show', $user))
         ->assertForbidden();
 })->with([
@@ -52,6 +52,6 @@ test('admins and unverified accounts have no public profile', function (User $us
 ]);
 
 test('guests cannot view profiles', function () {
-    $this->get(route('profiles.show', User::factory()->band()->create()))
+    $this->get(route('profiles.show', User::factory()->artist()->create()))
         ->assertRedirect(route('login'));
 });

@@ -13,7 +13,7 @@ class CancelBookings
     public function __construct(private SendMessage $messages) {}
 
     /**
-     * The event is off: cancel the open and accepted requests and let the bands and venues know.
+     * The event is off: cancel the open and accepted requests and let the artists and venues know.
      */
     public function handle(Event $event): void
     {

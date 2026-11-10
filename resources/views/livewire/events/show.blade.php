@@ -1,7 +1,7 @@
 @php
     $owner = $event->owner;
     $booking = $this->booking;
-    $openSlots = $event->openBandSlots();
+    $openSlots = $event->openArtistSlots();
 @endphp
 
 <div class="mx-auto flex w-full max-w-3xl flex-col gap-6">
@@ -65,7 +65,7 @@
             </p>
             <p class="flex items-center gap-2 text-zinc-900">
                 <flux:icon.musical-note variant="micro" class="shrink-0 text-zinc-500" />
-                {{ trans_choice(':count band playing|:count bands playing', $event->band_slots) }}
+                {{ trans_choice(':count artist playing|:count artists playing', $event->artist_slots) }}
                 @if ($openSlots > 0)
                     <span class="text-zinc-500">&middot; {{ trans_choice(':count slot still open|:count slots still open', $openSlots) }}</span>
                 @endif
@@ -95,12 +95,26 @@
                 <x-user-avatar :user="$performer" class="size-10 text-xs" />
                 <span class="min-w-0 flex-1">
                     <span class="block truncate font-bold text-zinc-900">{{ $performer->displayName() }}</span>
-                    <span class="block truncate text-xs text-zinc-500">{{ $performer->bandProfile?->genre }}</span>
+                    <span class="block truncate text-xs text-zinc-500">{{ $performer->artistProfile?->genre }}</span>
                 </span>
                 <x-pill>{{ $performer->id === $event->user_id ? __('Host') : __('Booked') }}</x-pill>
             </a>
         @empty
-            <flux:text>{{ __('No bands confirmed yet.') }}</flux:text>
+            <flux:text>{{ __('No artists confirmed yet.') }}</flux:text>
         @endforelse
+
+        @if ($this->invitedArtists->isNotEmpty())
+            <flux:text class="mt-2 font-semibold" data-test="invited-artists">{{ __('Invited, waiting for a reply') }}</flux:text>
+            @foreach ($this->invitedArtists as $invited)
+                <a href="{{ route('profiles.show', $invited) }}" wire:navigate class="flex items-center gap-3 rounded-xl border border-dashed border-zinc-200 bg-white p-3 hover:no-underline" wire:key="invited-{{ $invited->id }}">
+                    <x-user-avatar :user="$invited" class="size-10 text-xs" />
+                    <span class="min-w-0 flex-1">
+                        <span class="block truncate font-bold text-zinc-900">{{ $invited->displayName() }}</span>
+                        <span class="block truncate text-xs text-zinc-500">{{ $invited->artistProfile?->genre }}</span>
+                    </span>
+                    <x-pill>{{ __('Invited') }}</x-pill>
+                </a>
+            @endforeach
+        @endif
     </x-profile-section>
 </div>

@@ -8,7 +8,7 @@ use App\Models\User;
 class BookingRequestPolicy
 {
     /**
-     * Only the band or venue that was asked can accept or decline, and only before the deadline.
+     * Only the artist or venue that was asked can accept or decline, and only before the deadline.
      */
     public function respond(User $user, BookingRequest $booking): bool
     {

@@ -13,7 +13,7 @@ test('admin can never be chosen at sign-up', function () {
 test('options map backing values to labels', function () {
     expect(UserRole::options())->toBe([
         'venue' => 'Venue',
-        'band' => 'Band',
+        'artist' => 'Artist',
         'organiser' => 'Organiser',
         'admin' => 'Admin',
     ]);

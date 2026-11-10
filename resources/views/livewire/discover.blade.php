@@ -11,7 +11,7 @@
 <div class="mx-auto flex w-full max-w-5xl flex-col gap-5">
     <div>
         <flux:heading size="xl" level="1">{{ __('Discover') }}</flux:heading>
-        <flux:text class="mt-1">{{ __('Find venues, bands and organisers who are free when you need them.') }}</flux:text>
+        <flux:text class="mt-1">{{ __('Find venues, artists and organisers who are free when you need them.') }}</flux:text>
     </div>
 
     <x-profile-section>
@@ -105,9 +105,9 @@
                                         {{ $account->venueProfile?->location }}
                                         @if ($account->venueProfile) &middot; {{ __('Capacity :count', ['count' => number_format($account->venueProfile->capacity)]) }} @endif
                                         @break
-                                    @case(UserRole::Band)
-                                        {{ $account->bandProfile?->genre }}
-                                        @if ($account->bandProfile) &middot; {{ trans_choice(':count member|:count members', $account->bandProfile->member_count) }} @endif
+                                    @case(UserRole::Artist)
+                                        {{ $account->artistProfile?->genre }}
+                                        @if ($account->artistProfile) &middot; {{ trans_choice(':count member|:count members', $account->artistProfile->member_count) }} @endif
                                         @break
                                     @default
                                         {{ $account->name }}

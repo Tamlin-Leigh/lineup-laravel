@@ -6,19 +6,19 @@ use App\Models\Event;
 use App\Models\User;
 use Livewire\Livewire;
 
-test('the events page is for venues, bands and organisers', function (string $state, int $status) {
+test('the events page is for venues, artists and organisers', function (string $state, int $status) {
     $this->actingAs(User::factory()->{$state}()->create())
         ->get(route('events.index'))
         ->assertStatus($status);
 })->with([
     'venue' => ['venue', 200],
-    'band' => ['band', 200],
+    'artist' => ['artist', 200],
     'organiser' => ['organiser', 200],
     'admin' => ['admin', 403],
 ]);
 
 test('users only see their own events', function () {
-    $user = User::factory()->band()->create();
+    $user = User::factory()->artist()->create();
     Event::factory()->for($user, 'owner')->create(['title' => 'Mine']);
     Event::factory()->create(['title' => 'Someone Else']);
 
@@ -29,7 +29,7 @@ test('users only see their own events', function () {
 });
 
 test('tabs show counts and switch between event states', function () {
-    $user = User::factory()->band()->create();
+    $user = User::factory()->artist()->create();
     Event::factory()->for($user, 'owner')->count(2)->create();
     Event::factory()->for($user, 'owner')->draft()->create(['title' => 'Draft Gig']);
     Event::factory()->for($user, 'owner')->past()->create(['title' => 'Old Gig']);
@@ -44,7 +44,7 @@ test('tabs show counts and switch between event states', function () {
 });
 
 test('search matches title or location', function () {
-    $user = User::factory()->band()->create();
+    $user = User::factory()->artist()->create();
     Event::factory()->for($user, 'owner')->create(['title' => 'Jazz Night', 'location' => 'Durban']);
     Event::factory()->for($user, 'owner')->create(['title' => 'Rock Night', 'location' => 'Cape Town']);
 
@@ -56,7 +56,7 @@ test('search matches title or location', function () {
 });
 
 test('search treats % and _ literally', function () {
-    $user = User::factory()->band()->create();
+    $user = User::factory()->artist()->create();
     Event::factory()->for($user, 'owner')->create(['title' => 'Plain Show']);
 
     Livewire::actingAs($user)
@@ -65,19 +65,19 @@ test('search treats % and _ literally', function () {
         ->assertDontSee('Plain Show');
 });
 
-test('each event shows how many of its band slots are filled', function () {
+test('each event shows how many of its artist slots are filled', function () {
     $user = User::factory()->venue()->create();
-    $event = Event::factory()->for($user, 'owner')->create(['band_slots' => 3]);
+    $event = Event::factory()->for($user, 'owner')->create(['artist_slots' => 3]);
     BookingRequest::factory()->for($event)->accepted()->create();
     BookingRequest::factory()->for($event)->declined()->create();
 
     Livewire::actingAs($user)
         ->test(Index::class)
-        ->assertSee('1 of 3 bands');
+        ->assertSee('1 of 3 artists');
 });
 
 test('results are paged six at a time', function () {
-    $user = User::factory()->band()->create();
+    $user = User::factory()->artist()->create();
     Event::factory()->for($user, 'owner')->count(8)->create();
 
     Livewire::actingAs($user)
@@ -88,7 +88,7 @@ test('results are paged six at a time', function () {
 });
 
 test('users can delete their own events', function () {
-    $user = User::factory()->band()->create();
+    $user = User::factory()->artist()->create();
     $event = Event::factory()->for($user, 'owner')->create();
 
     Livewire::actingAs($user)->test(Index::class)->call('delete', $event->id);
@@ -99,7 +99,7 @@ test('users can delete their own events', function () {
 test("users cannot delete someone else's event", function () {
     $event = Event::factory()->create();
 
-    Livewire::actingAs(User::factory()->band()->create())
+    Livewire::actingAs(User::factory()->artist()->create())
         ->test(Index::class)
         ->call('delete', $event->id)
         ->assertNotFound();

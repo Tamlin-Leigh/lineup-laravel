@@ -5,7 +5,7 @@ namespace App\Actions;
 use App\Enums\LinkKind;
 use App\Enums\SoundEngineer;
 use App\Enums\UserRole;
-use App\Models\BandProfile;
+use App\Models\ArtistProfile;
 use App\Models\OrganiserProfile;
 use App\Models\User;
 use App\Models\VenueProfile;
@@ -24,7 +24,7 @@ class SaveProfile
     {
         match ($user->role) {
             UserRole::Venue => $this->saveVenue($user, $input),
-            UserRole::Band => $this->saveBand($user, $input),
+            UserRole::Artist => $this->saveArtist($user, $input),
             UserRole::Organiser => $this->saveOrganiser($user, $input),
             UserRole::Admin => throw new InvalidArgumentException('Admin accounts do not have a profile.'),
         };
@@ -58,13 +58,13 @@ class SaveProfile
     /**
      * @param  array<string, mixed>  $input
      */
-    private function saveBand(User $user, array $input): void
+    private function saveArtist(User $user, array $input): void
     {
-        $profile = $user->bandProfile()->updateOrCreate([], [
+        $profile = $user->artistProfile()->updateOrCreate([], [
             'manager_name' => $input['manager_name'],
             'manager_phone' => $input['manager_phone'],
             'manager_email' => $input['manager_email'],
-            'band_name' => $input['band_name'],
+            'artist_name' => $input['artist_name'],
             'member_count' => (int) $input['member_count'],
             'member_names' => $input['member_names'],
             'genre' => $input['genre'],
@@ -96,7 +96,7 @@ class SaveProfile
      *
      * @param  list<array{platform: string, url: string}>  $links
      */
-    private function syncLinks(BandProfile|OrganiserProfile|VenueProfile $profile, LinkKind $kind, array $links): void
+    private function syncLinks(ArtistProfile|OrganiserProfile|VenueProfile $profile, LinkKind $kind, array $links): void
     {
         $profile->links()->where('kind', $kind)->delete();
 

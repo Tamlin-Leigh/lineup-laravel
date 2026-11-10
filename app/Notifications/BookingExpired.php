@@ -5,7 +5,7 @@ namespace App\Notifications;
 use Illuminate\Notifications\Messages\MailMessage;
 
 /**
- * Sent to the event's owner when a band or venue lets a request run out without replying.
+ * Sent to the event's owner when an artist or venue lets a request run out without replying.
  */
 class BookingExpired extends BookingNotification
 {

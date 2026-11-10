@@ -1,4 +1,4 @@
-{{-- Expects $profile (BandProfile|VenueProfile|OrganiserProfile|null) and optional $socialOnly. --}}
+{{-- Expects $profile (ArtistProfile|VenueProfile|OrganiserProfile|null) and optional $socialOnly. --}}
 @php use App\Enums\LinkKind; @endphp
 
 <x-profile-section :title="__('Links')">

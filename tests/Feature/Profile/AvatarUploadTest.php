@@ -11,7 +11,7 @@ beforeEach(function () {
 });
 
 test('a user can upload a profile photo', function () {
-    $user = User::factory()->band()->create();
+    $user = User::factory()->artist()->create();
 
     Livewire::actingAs($user)
         ->test(AvatarUpload::class, ['user' => $user])
@@ -26,7 +26,7 @@ test('a user can upload a profile photo', function () {
 });
 
 test('uploading a new photo deletes the old one', function () {
-    $user = User::factory()->band()->create();
+    $user = User::factory()->artist()->create();
     $component = Livewire::actingAs($user)->test(AvatarUpload::class, ['user' => $user]);
 
     $component->set('photo', UploadedFile::fake()->image('first.png'));
@@ -39,7 +39,7 @@ test('uploading a new photo deletes the old one', function () {
 });
 
 test('only images under 5 MB are accepted', function (UploadedFile $file) {
-    $user = User::factory()->band()->create();
+    $user = User::factory()->artist()->create();
 
     Livewire::actingAs($user)
         ->test(AvatarUpload::class, ['user' => $user])
@@ -53,7 +53,7 @@ test('only images under 5 MB are accepted', function (UploadedFile $file) {
 ]);
 
 test('a user can remove their photo', function () {
-    $user = User::factory()->band()->create();
+    $user = User::factory()->artist()->create();
     $component = Livewire::actingAs($user)->test(AvatarUpload::class, ['user' => $user]);
 
     $component->set('photo', UploadedFile::fake()->image('me.jpg'));
@@ -66,9 +66,9 @@ test('a user can remove their photo', function () {
 });
 
 test("nobody else can change a user's photo", function () {
-    $owner = User::factory()->band()->create();
+    $owner = User::factory()->artist()->create();
 
-    Livewire::actingAs(User::factory()->band()->create())
+    Livewire::actingAs(User::factory()->artist()->create())
         ->test(AvatarUpload::class, ['user' => $owner])
         ->set('photo', UploadedFile::fake()->image('me.jpg'))
         ->assertForbidden();
@@ -77,7 +77,7 @@ test("nobody else can change a user's photo", function () {
 });
 
 test('deleting an account deletes its photo', function () {
-    $user = User::factory()->band()->create();
+    $user = User::factory()->artist()->create();
     Livewire::actingAs($user)
         ->test(AvatarUpload::class, ['user' => $user])
         ->set('photo', UploadedFile::fake()->image('me.jpg'));

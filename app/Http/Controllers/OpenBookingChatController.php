@@ -13,7 +13,7 @@ class OpenBookingChatController extends Controller
 {
     /**
      * The "Message" button on a booking: open its chat (starting it if needed). Only the event's
-     * owner and the band or venue on the booking can, once it has been accepted.
+     * owner and the artist or venue on the booking can, once it has been accepted.
      */
     public function __invoke(Request $request, BookingRequest $booking): RedirectResponse
     {

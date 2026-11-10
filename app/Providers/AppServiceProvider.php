@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Models\BandProfile;
+use App\Models\ArtistProfile;
 use App\Models\OrganiserProfile;
 use App\Models\User;
 use App\Models\VenueProfile;
@@ -44,7 +44,7 @@ class AppServiceProvider extends ServiceProvider
         // Store short aliases in polymorphic columns (e.g. links.linkable_type) instead of class names.
         Relation::enforceMorphMap([
             'venue_profile' => VenueProfile::class,
-            'band_profile' => BandProfile::class,
+            'artist_profile' => ArtistProfile::class,
             'organiser_profile' => OrganiserProfile::class,
             // Notifications are stored against users (notifications.notifiable_type).
             'user' => User::class,

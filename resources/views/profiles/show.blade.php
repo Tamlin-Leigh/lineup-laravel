@@ -4,10 +4,10 @@
     use App\Enums\UserRole;
 
     $venue = $user->venueProfile;
-    $band = $user->bandProfile;
+    $artist = $user->artistProfile;
     $organiser = $user->organiserProfile;
-    $links = ($band ?? $organiser ?? $venue)?->links ?? collect();
-    $members = str($band?->member_names)->explode(',')->map(fn ($name) => trim($name))->filter();
+    $links = ($artist ?? $organiser ?? $venue)?->links ?? collect();
+    $members = str($artist?->member_names)->explode(',')->map(fn ($name) => trim($name))->filter();
 @endphp
 
 {{-- Read-only profile seen by other users. Contact details (email, phone, manager contact) are deliberately left out. --}}
@@ -27,7 +27,7 @@
                 <flux:text class="mt-1">
                     @switch($user->role)
                         @case(UserRole::Venue) {{ $venue?->location }} @break
-                        @case(UserRole::Band) {{ $band?->genre }} @break
+                        @case(UserRole::Artist) {{ $artist?->genre }} @break
                         @default {{ $user->name }}
                     @endswitch
                 </flux:text>
@@ -83,11 +83,11 @@
             </div>
         @endif
 
-        @if ($band)
+        @if ($artist)
             <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
                 <x-profile-section :title="__('About')">
-                    @if ($band->bio)
-                        <p class="whitespace-pre-line text-zinc-900">{{ $band->bio }}</p>
+                    @if ($artist->bio)
+                        <p class="whitespace-pre-line text-zinc-900">{{ $artist->bio }}</p>
                     @else
                         <flux:text>{{ __('No bio added yet.') }}</flux:text>
                     @endif
@@ -97,16 +97,16 @@
                     <dl class="flex flex-col gap-2 text-zinc-900">
                         <div class="flex justify-between gap-3">
                             <dt class="text-zinc-500">{{ __('Booking fee') }}</dt>
-                            <dd class="font-semibold">{{ $band->booking_fee !== null ? 'R'.number_format($band->booking_fee) : __('On request') }}</dd>
+                            <dd class="font-semibold">{{ $artist->booking_fee !== null ? 'R'.number_format($artist->booking_fee) : __('On request') }}</dd>
                         </div>
                         <div class="flex justify-between gap-3">
                             <dt class="text-zinc-500">{{ __('Door / ticket splits') }}</dt>
-                            <dd class="font-semibold">{{ $band->accepts_door_split ? __('Open to splits') : __('Not offered') }}</dd>
+                            <dd class="font-semibold">{{ $artist->accepts_door_split ? __('Open to splits') : __('Not offered') }}</dd>
                         </div>
                     </dl>
                 </x-profile-section>
 
-                <x-profile-section :title="__('Members (:count)', ['count' => $band->member_count])">
+                <x-profile-section :title="__('Members (:count)', ['count' => $artist->member_count])">
                     <ul class="flex flex-col gap-1.5 text-zinc-900">
                         @foreach ($members as $member)
                             <li>{{ $member }}</li>

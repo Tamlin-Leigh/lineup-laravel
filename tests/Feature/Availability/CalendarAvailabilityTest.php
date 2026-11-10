@@ -16,7 +16,7 @@ afterEach(function () {
 });
 
 test('clicking days in marking mode toggles them', function () {
-    $user = User::factory()->band()->create();
+    $user = User::factory()->artist()->create();
 
     Livewire::actingAs($user)
         ->test(Calendar::class)
@@ -29,7 +29,7 @@ test('clicking days in marking mode toggles them', function () {
 });
 
 test('days flip in the browser first, and the re-render carries what was saved', function () {
-    $user = User::factory()->band()->create();
+    $user = User::factory()->artist()->create();
 
     $component = Livewire::actingAs($user)
         ->test(Calendar::class)
@@ -47,7 +47,7 @@ test('days flip in the browser first, and the re-render carries what was saved',
 });
 
 test('clicks still being saved survive re-renders from earlier saves', function () {
-    $user = User::factory()->band()->create();
+    $user = User::factory()->artist()->create();
 
     // Livewire's own saves can't run here, so check the page carries what the browser side needs:
     // a hook on each re-render, and a way to find each clickable day by its date.
@@ -60,7 +60,7 @@ test('clicks still being saved survive re-renders from earlier saves', function 
 });
 
 test('malformed or past dates are ignored', function () {
-    $user = User::factory()->band()->create();
+    $user = User::factory()->artist()->create();
 
     Livewire::actingAs($user)
         ->test(Calendar::class)
@@ -72,7 +72,7 @@ test('malformed or past dates are ignored', function () {
 });
 
 test('mark all weekends fills the remaining Fridays to Sundays of the month', function () {
-    $user = User::factory()->band()->create();
+    $user = User::factory()->artist()->create();
 
     Livewire::actingAs($user)->test(Calendar::class)->call('markWeekends');
 
@@ -85,7 +85,7 @@ test('mark all weekends fills the remaining Fridays to Sundays of the month', fu
 });
 
 test('mark all weekends works on the month being viewed', function () {
-    $user = User::factory()->band()->create();
+    $user = User::factory()->artist()->create();
 
     Livewire::actingAs($user)->test(Calendar::class)->call('nextMonth')->call('markWeekends');
 
@@ -93,7 +93,7 @@ test('mark all weekends works on the month being viewed', function () {
 });
 
 test('clear month only clears the month being viewed', function () {
-    $user = User::factory()->band()->create();
+    $user = User::factory()->artist()->create();
     Availability::factory()->for($user)->create(['date' => '2026-10-16']);
     Availability::factory()->for($user)->create(['date' => '2026-11-06']);
 
@@ -103,7 +103,7 @@ test('clear month only clears the month being viewed', function () {
 });
 
 test('free days are shown on the calendar and in the side panel', function () {
-    $user = User::factory()->band()->create();
+    $user = User::factory()->artist()->create();
     Availability::factory()->for($user)->create(['date' => '2026-10-16']);
     Availability::factory()->for(User::factory()->venue())->create(['date' => '2026-10-17']);
 
@@ -115,7 +115,7 @@ test('free days are shown on the calendar and in the side panel', function () {
 });
 
 test('people with no free days are prompted to add some', function () {
-    Livewire::actingAs(User::factory()->band()->create())
+    Livewire::actingAs(User::factory()->artist()->create())
         ->test(Calendar::class)
         ->assertSee('You have not marked any free days yet.');
 });

@@ -25,12 +25,12 @@ use Illuminate\Support\Carbon;
  * @property string $location
  * @property Carbon $starts_at
  * @property int $price Whole rand (ZAR); 0 means free.
- * @property int $band_slots How many bands play, the host band included.
+ * @property int $artist_slots How many artists play, the host artist included.
  * @property EventStatus $status
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['venue_profile_id', 'title', 'description', 'location', 'starts_at', 'price', 'band_slots', 'status'])]
+#[Fillable(['venue_profile_id', 'title', 'description', 'location', 'starts_at', 'price', 'artist_slots', 'status'])]
 class Event extends Model
 {
     /** @use HasFactory<EventFactory> */
@@ -56,7 +56,7 @@ class Event extends Model
         return [
             'starts_at' => 'datetime',
             'price' => 'integer',
-            'band_slots' => 'integer',
+            'artist_slots' => 'integer',
             'status' => EventStatus::class,
         ];
     }
@@ -78,7 +78,7 @@ class Event extends Model
     }
 
     /**
-     * Bands asked to play at this event, and venues asked to host it.
+     * Artists asked to play at this event, and venues asked to host it.
      *
      * @return HasMany<BookingRequest, $this>
      */
@@ -88,66 +88,84 @@ class Event extends Model
     }
 
     /**
-     * The bands playing: a band hosting its own event is always on the line-up, followed by the
-     * bands that accepted a booking request.
+     * The artists playing: an artist hosting its own event is always on the line-up, followed by the
+     * artists that accepted a booking request.
      *
      * @return Collection<int, User>
      */
     public function lineUp(): Collection
     {
         $booked = User::query()
-            ->where('role', UserRole::Band)
+            ->where('role', UserRole::Artist)
             ->whereHas('receivedBookingRequests', fn (Builder $query) => $query
                 ->where('event_id', $this->id)
                 ->where('status', BookingStatus::Accepted))
-            ->with('bandProfile')
+            ->with('artistProfile')
             ->orderBy('name')
             ->get();
 
-        return $this->owner->role === UserRole::Band
-            ? $booked->prepend($this->owner->loadMissing('bandProfile'))
+        return $this->owner->role === UserRole::Artist
+            ? $booked->prepend($this->owner->loadMissing('artistProfile'))
             : $booked;
     }
 
     /**
-     * Band slots already spoken for: the host band (if a band is hosting), bands that accepted, and
-     * bands still deciding. Declined, expired and cancelled requests free their slot again.
+     * The artists asked to play who haven't answered yet.
+     *
+     * @return Collection<int, User>
      */
-    public function takenBandSlots(): int
+    public function invitedArtists(): Collection
     {
-        $bands = $this->bookingRequests()->open()->whereRelation('recipient', 'role', UserRole::Band)->count();
-
-        return $bands + ($this->owner->role === UserRole::Band ? 1 : 0);
+        return User::query()
+            ->where('role', UserRole::Artist)
+            ->whereHas('receivedBookingRequests', fn (Builder $query) => $query
+                ->where('event_id', $this->id)
+                ->where('status', BookingStatus::Requested)
+                ->where('expires_at', '>', now()))
+            ->with('artistProfile')
+            ->orderBy('name')
+            ->get();
     }
 
     /**
-     * How many more bands can be asked to play.
+     * Artist slots already spoken for: the host artist (if an artist is hosting), artists that accepted, and
+     * artists still deciding. Declined, expired and cancelled requests free their slot again.
      */
-    public function openBandSlots(): int
+    public function takenArtistSlots(): int
     {
-        return max(0, $this->band_slots - $this->takenBandSlots());
+        $artists = $this->bookingRequests()->open()->whereRelation('recipient', 'role', UserRole::Artist)->count();
+
+        return $artists + ($this->owner->role === UserRole::Artist ? 1 : 0);
     }
 
     /**
-     * What still has to be confirmed before the event can be published: every band slot filled by a
-     * band that accepted (a hosting band counts as one), and no venue still deciding. A draft is a
+     * How many more artists can be asked to play.
+     */
+    public function openArtistSlots(): int
+    {
+        return max(0, $this->artist_slots - $this->takenArtistSlots());
+    }
+
+    /**
+     * What still has to be confirmed before the event can be published: every artist slot filled by an
+     * artist that accepted (a hosting artist counts as one), and no venue still deciding. A draft is a
      * pending event; there is no point announcing one without its line-up and venue.
      *
-     * @param  int|null  $bandSlots  The band slot count to check against; defaults to the saved one.
+     * @param  int|null  $artistSlots  The artist slot count to check against; defaults to the saved one.
      * @return list<string> Reasons, empty when the event is ready to publish.
      */
-    public function publishBlockers(?int $bandSlots = null): array
+    public function publishBlockers(?int $artistSlots = null): array
     {
-        $bandSlots ??= $this->band_slots;
+        $artistSlots ??= $this->artist_slots;
         $blockers = [];
 
         $confirmed = $this->bookingRequests()
             ->where('status', BookingStatus::Accepted)
-            ->whereRelation('recipient', 'role', UserRole::Band)
-            ->count() + ($this->owner->role === UserRole::Band ? 1 : 0);
+            ->whereRelation('recipient', 'role', UserRole::Artist)
+            ->count() + ($this->owner->role === UserRole::Artist ? 1 : 0);
 
-        if ($confirmed < $bandSlots) {
-            $blockers[] = trans_choice(':confirmed of :count band confirmed.|:confirmed of :count bands confirmed.', $bandSlots, ['confirmed' => $confirmed, 'count' => $bandSlots]);
+        if ($confirmed < $artistSlots) {
+            $blockers[] = trans_choice(':confirmed of :count artist confirmed.|:confirmed of :count artists confirmed.', $artistSlots, ['confirmed' => $confirmed, 'count' => $artistSlots]);
         }
 
         $pendingVenue = $this->bookingRequests()
@@ -166,6 +184,14 @@ class Event extends Model
     public function isReadyToPublish(): bool
     {
         return $this->publishBlockers() === [];
+    }
+
+    /**
+     * Whether this is a draft, still to come, with everything confirmed: it only needs publishing.
+     */
+    public function canBePublished(): bool
+    {
+        return $this->status === EventStatus::Draft && ! $this->isPast() && $this->isReadyToPublish();
     }
 
     /**

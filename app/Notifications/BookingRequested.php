@@ -5,7 +5,7 @@ namespace App\Notifications;
 use Illuminate\Notifications\Messages\MailMessage;
 
 /**
- * Sent to a band asked to play at an event, or a venue asked to host one.
+ * Sent to an artist asked to play at an event, or a venue asked to host one.
  */
 class BookingRequested extends BookingNotification
 {

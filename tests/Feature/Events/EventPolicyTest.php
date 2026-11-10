@@ -3,11 +3,11 @@
 use App\Models\Event;
 use App\Models\User;
 
-test('venues, bands and organisers can create events but admins cannot', function (string $state, bool $allowed) {
+test('venues, artists and organisers can create events but admins cannot', function (string $state, bool $allowed) {
     expect(User::factory()->{$state}()->create()->can('create', Event::class))->toBe($allowed);
 })->with([
     'venue' => ['venue', true],
-    'band' => ['band', true],
+    'artist' => ['artist', true],
     'organiser' => ['organiser', true],
     'admin' => ['admin', false],
 ]);
@@ -21,7 +21,7 @@ test('owners can update and delete their events', function () {
 
 test("other users cannot update or delete someone else's event", function () {
     $event = Event::factory()->create();
-    $other = User::factory()->band()->create();
+    $other = User::factory()->artist()->create();
 
     expect($other->can('update', $event))->toBeFalse()
         ->and($other->can('delete', $event))->toBeFalse();

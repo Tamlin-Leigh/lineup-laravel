@@ -15,7 +15,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 
 /**
- * Find venues, bands and organisers who are free on a weekend, a single day or a date range.
+ * Find venues, artists and organisers who are free on a weekend, a single day or a date range.
  * Every filter lives in the URL so a search can be bookmarked or shared.
  */
 #[Title('Discover')]
@@ -111,7 +111,7 @@ class Discover extends Component
     {
         return ['all' => __('All')] + [
             UserRole::Venue->value => __('Venues'),
-            UserRole::Band->value => __('Bands'),
+            UserRole::Artist->value => __('Artists'),
             UserRole::Organiser->value => __('Organisers'),
         ];
     }

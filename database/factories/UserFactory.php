@@ -3,7 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\UserRole;
-use App\Models\BandProfile;
+use App\Models\ArtistProfile;
 use App\Models\OrganiserProfile;
 use App\Models\User;
 use App\Models\VenueProfile;
@@ -32,7 +32,7 @@ class UserFactory extends Factory
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'phone' => fake()->numerify('0#########'),
-            'role' => UserRole::Band,
+            'role' => UserRole::Artist,
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
@@ -51,11 +51,11 @@ class UserFactory extends Factory
     }
 
     /**
-     * A band account with its band profile.
+     * An artist account with its artist profile.
      */
-    public function band(): static
+    public function artist(): static
     {
-        return $this->state(['role' => UserRole::Band])->has(BandProfile::factory());
+        return $this->state(['role' => UserRole::Artist])->has(ArtistProfile::factory());
     }
 
     /**

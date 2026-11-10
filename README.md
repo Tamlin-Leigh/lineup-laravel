@@ -1,6 +1,6 @@
 # LineUp
 
-A booking platform connecting **bands**, **venues** and **event organisers**, built with Laravel 13 and Livewire.
+A booking platform connecting **artists**, **venues** and **event organisers**, built with Laravel 13 and Livewire.
 
 > Work in progress. See [PLAN.md](PLAN.md) for the architecture and roadmap.
 
@@ -31,8 +31,8 @@ npm install && npm run dev
 - MySQL from a GUI client: `127.0.0.1:3307`, user `sail`, password `password`, database `lineup`
 
 The seeder creates one demo account per role, all with the password `password`:
-`venue@example.com`, `band@example.com`, `organiser@example.com` and `admin@example.com`.
-The demo band and demo venue each have a booking request waiting on their Bookings page.
+`venue@example.com`, `artist@example.com`, `organiser@example.com` and `admin@example.com`.
+The demo artist and demo venue each have a booking request waiting on their Bookings page.
 
 Booking emails and in-app notices are sent by the `queue` container and unanswered requests are expired by the
 `scheduler` container (`php artisan bookings:expire`, every 15 minutes). The queue worker keeps the code it

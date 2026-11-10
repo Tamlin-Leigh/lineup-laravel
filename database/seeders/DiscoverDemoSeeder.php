@@ -9,7 +9,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 /**
- * Extra venues, bands and organisers with a mix of free days, so Discover has people to find.
+ * Extra venues, artists and organisers with a mix of free days, so Discover has people to find.
  * Safe to run on its own against an existing database (it only adds accounts):
  *
  *     php artisan db:seed --class=DiscoverDemoSeeder
@@ -20,7 +20,7 @@ class DiscoverDemoSeeder extends Seeder
 
     public function run(UpdateAvailability $availability): void
     {
-        foreach (['venue' => 3, 'band' => 4, 'organiser' => 2] as $state => $count) {
+        foreach (['venue' => 3, 'artist' => 4, 'organiser' => 2] as $state => $count) {
             User::factory()->{$state}()->count($count)->create()->each(
                 fn (User $user) => $availability->markFree($user, $this->someUpcomingDays()),
             );

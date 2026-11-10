@@ -46,7 +46,7 @@ test('accepting a booking opens a private chat with a note from LineUp', functio
         ->and($conversation->recipient_id)->toBe($booking->recipient_id)
         ->and($conversation->messages()->sole()->isSystem())->toBeTrue()
         ->and($conversation->messages()->sole()->body)->toContain('accepted the booking request')
-        // The band accepted, so only the host has something new to read.
+        // The artist accepted, so only the host has something new to read.
         ->and($booking->event->owner->unreadMessagesCount())->toBe(1)
         ->and($booking->recipient->unreadMessagesCount())->toBe(0);
 });
@@ -56,13 +56,13 @@ test('only the two people on the booking can open its chat', function (string $w
     $user = match ($who) {
         'owner' => $conversation->owner,
         'recipient' => $conversation->recipient,
-        default => User::factory()->band()->create(),
+        default => User::factory()->artist()->create(),
     };
 
     $this->actingAs($user)->get(route('messages.show', $conversation))->assertStatus($status);
 })->with([
     'host' => ['owner', 200],
-    'band' => ['recipient', 200],
+    'artist' => ['recipient', 200],
     'anyone else' => ['stranger', 403],
 ]);
 
@@ -207,7 +207,7 @@ test('the message button opens the booking chat for the two people on it', funct
         ->get(route('bookings.chat', $booking))
         ->assertRedirect(route('messages.show', Conversation::where('booking_request_id', $booking->id)->sole()));
 
-    $this->actingAs(User::factory()->band()->create())->get(route('bookings.chat', $booking))->assertForbidden();
+    $this->actingAs(User::factory()->artist()->create())->get(route('bookings.chat', $booking))->assertForbidden();
 });
 
 test('there is no chat until the booking is accepted', function () {
