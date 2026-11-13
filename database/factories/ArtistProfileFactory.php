@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\Region;
 use App\Enums\UserRole;
 use App\Models\ArtistProfile;
 use App\Models\User;
@@ -30,6 +31,7 @@ class ArtistProfileFactory extends Factory
             'member_count' => $memberCount,
             'member_names' => implode(', ', array_map(fn () => fake()->firstName(), range(1, $memberCount))),
             'genre' => fake()->randomElement(['Rock', 'Jazz', 'Hip-Hop', 'Indie', 'Electronic', 'Folk']),
+            'region' => Region::Johannesburg,
             'bio' => fake()->optional()->sentence(12),
             'booking_fee' => fake()->optional()->randomElement([1500, 2500, 4000, 6000]),
             'accepts_door_split' => fake()->boolean(),

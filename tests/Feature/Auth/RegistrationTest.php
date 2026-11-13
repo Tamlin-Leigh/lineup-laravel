@@ -3,6 +3,7 @@
 use App\Enums\EventDay;
 use App\Enums\LinkKind;
 use App\Enums\LinkPlatform;
+use App\Enums\Region;
 use App\Enums\SoundEngineer;
 use App\Enums\UserRole;
 use App\Livewire\Auth\Register;
@@ -136,6 +137,7 @@ test('a venue can register', function () {
         ->set([
             'form.capacity' => '250',
             'form.location' => '12 Long Street, Cape Town',
+            'form.region' => 'cape-town',
             'form.min_door_charge' => '80',
             'form.sound_engineer' => SoundEngineer::InHouse->value,
             'form.sound_engineer_name' => 'Alex',
@@ -180,6 +182,7 @@ test('a venue with an in-house sound engineer must name them', function () {
         ->set([
             'form.capacity' => '250',
             'form.location' => 'Cape Town',
+            'form.region' => 'cape-town',
             'form.min_door_charge' => '0',
             'form.sound_engineer' => SoundEngineer::InHouse->value,
             'form.has_own_equipment' => false,
@@ -196,6 +199,7 @@ test('a venue must pick at least one event day', function () {
         ->set([
             'form.capacity' => '250',
             'form.location' => 'Cape Town',
+            'form.region' => 'cape-town',
             'form.min_door_charge' => '0',
             'form.sound_engineer' => SoundEngineer::None->value,
             'form.has_own_equipment' => false,
@@ -216,6 +220,7 @@ test('an artist can register with music and social links', function () {
             'form.member_count' => '4',
             'form.member_names' => 'Ann, Ben, Cat, Dan',
             'form.genre' => 'Rock',
+            'form.region' => 'johannesburg',
         ])
         ->call('next')
         ->assertHasNoErrors()
@@ -241,7 +246,7 @@ test('links must be real urls on a platform that fits their kind', function () {
     registerAs(UserRole::Artist)
         ->set(managerDetails())
         ->call('next')
-        ->set(['form.artist_name' => 'X', 'form.member_count' => '1', 'form.member_names' => 'X', 'form.genre' => 'Pop'])
+        ->set(['form.artist_name' => 'X', 'form.member_count' => '1', 'form.member_names' => 'X', 'form.genre' => 'Pop', 'form.region' => 'johannesburg'])
         ->call('next')
         ->set('form.music_links', [['platform' => LinkPlatform::Instagram->value, 'url' => 'javascript:alert(1)']])
         ->call('next')
@@ -256,6 +261,7 @@ test('an organiser can register', function () {
             'form.org_name' => 'Gig Co',
             'form.contact_number' => '0211234567',
             'form.contact_email' => 'hello@gigco.test',
+            'form.region' => 'cape-town',
         ])
         ->set('form.social_links', [['platform' => LinkPlatform::Instagram->value, 'url' => 'https://instagram.com/gigco']])
         ->call('next')
@@ -266,6 +272,7 @@ test('an organiser can register', function () {
 
     expect($user->role)->toBe(UserRole::Organiser)
         ->and($user->organiserProfile)->org_name->toBe('Gig Co')
+        ->and($user->organiserProfile->region)->toBe(Region::CapeTown)
         ->and($user->organiserProfile->links)->toHaveCount(1)
         ->and($user->venueProfile)->toBeNull()
         ->and($user->artistProfile)->toBeNull();
@@ -274,7 +281,7 @@ test('an organiser can register', function () {
 test('the final step re-validates every step for the role', function () {
     // The personal step already passed; blanking one of its fields must still block sign-up.
     registerAs(UserRole::Organiser)
-        ->set(['form.org_name' => 'Gig Co', 'form.contact_number' => '0211234567', 'form.contact_email' => 'hello@gigco.test'])
+        ->set(['form.org_name' => 'Gig Co', 'form.contact_number' => '0211234567', 'form.contact_email' => 'hello@gigco.test', 'form.region' => 'cape-town'])
         ->set('form.name', '')
         ->call('next')
         ->assertHasErrors(['form.name' => 'required']);

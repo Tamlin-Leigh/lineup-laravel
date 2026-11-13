@@ -5,6 +5,7 @@ namespace App\Livewire\Forms;
 use App\Enums\EventDay;
 use App\Enums\LinkKind;
 use App\Enums\LinkPlatform;
+use App\Enums\Region;
 use App\Enums\SoundEngineer;
 use App\Enums\UserRole;
 use App\Models\Link;
@@ -33,6 +34,9 @@ class ProfileForm extends Form
 
     public string $phone = '';
 
+    // Region (every role with a profile)
+    public string $region = '';
+
     // Manager (venue + artist)
     public string $manager_name = '';
 
@@ -44,6 +48,12 @@ class ProfileForm extends Form
     public string $capacity = '';
 
     public string $location = '';
+
+    /** Metres, or '' if the venue hasn't given a stage size. */
+    public string $stage_width = '';
+
+    /** Metres, or '' if the venue hasn't given a stage size. */
+    public string $stage_depth = '';
 
     public string $min_door_charge = '';
 
@@ -120,6 +130,9 @@ class ProfileForm extends Form
                 'manager_email' => $venue->manager_email,
                 'capacity' => (string) $venue->capacity,
                 'location' => $venue->location,
+                'region' => (string) $venue->region?->value,
+                'stage_width' => (string) $venue->stage_width,
+                'stage_depth' => (string) $venue->stage_depth,
                 'min_door_charge' => (string) $venue->min_door_charge,
                 'sound_engineer' => $venue->sound_engineer->value,
                 'sound_engineer_name' => (string) $venue->sound_engineer_name,
@@ -139,6 +152,7 @@ class ProfileForm extends Form
                 'member_count' => (string) $artist->member_count,
                 'member_names' => $artist->member_names,
                 'genre' => $artist->genre,
+                'region' => (string) $artist->region?->value,
                 'bio' => (string) $artist->bio,
                 'booking_fee' => (string) $artist->booking_fee,
                 'accepts_door_split' => $artist->accepts_door_split,
@@ -152,6 +166,7 @@ class ProfileForm extends Form
                 'org_name' => $organiser->org_name,
                 'contact_number' => $organiser->contact_number,
                 'contact_email' => $organiser->contact_email,
+                'region' => (string) $organiser->region?->value,
                 'social_links' => $this->linkRows($organiser->links, LinkKind::Social),
             ]);
         }
@@ -198,6 +213,9 @@ class ProfileForm extends Form
             'venue' => [
                 'capacity' => ['required', 'integer', 'min:1', 'max:1000000'],
                 'location' => ['required', 'string', 'max:255'],
+                'region' => ['required', Rule::enum(Region::class)],
+                'stage_width' => ['nullable', 'required_with:stage_depth', 'numeric', 'decimal:0,1', 'min:1', 'max:99'],
+                'stage_depth' => ['nullable', 'required_with:stage_width', 'numeric', 'decimal:0,1', 'min:1', 'max:99'],
                 'min_door_charge' => ['required', 'integer', 'min:0', 'max:1000000'],
                 'sound_engineer' => ['required', Rule::enum(SoundEngineer::class)],
                 'sound_engineer_name' => ['nullable', 'required_if:sound_engineer,'.SoundEngineer::InHouse->value, 'string', 'max:255'],
@@ -214,6 +232,7 @@ class ProfileForm extends Form
                 'member_count' => ['required', 'integer', 'min:1', 'max:100'],
                 'member_names' => ['required', 'string', 'max:1000'],
                 'genre' => ['required', 'string', 'max:255'],
+                'region' => ['required', Rule::enum(Region::class)],
                 'bio' => ['nullable', 'string', 'max:2000'],
                 'booking_fee' => ['nullable', 'integer', 'min:0', 'max:10000000'],
                 'accepts_door_split' => ['boolean'],
@@ -226,6 +245,7 @@ class ProfileForm extends Form
                 'org_name' => ['required', 'string', 'max:255'],
                 'contact_number' => $phone,
                 'contact_email' => $email,
+                'region' => ['required', Rule::enum(Region::class)],
                 ...$this->linkRules('social_links'),
             ],
             default => [],
@@ -284,6 +304,8 @@ class ProfileForm extends Form
             'manager_name' => __("manager's name"),
             'manager_phone' => __("manager's phone number"),
             'manager_email' => __("manager's email"),
+            'stage_width' => __('stage width'),
+            'stage_depth' => __('stage depth'),
             'min_door_charge' => __('minimum door charge'),
             'sound_engineer' => __('sound engineer'),
             'member_count' => __('number of members'),

@@ -6,11 +6,13 @@ use App\Actions\CancelBookings;
 use App\Actions\SendBookingRequests;
 use App\Actions\UpdateAvailability;
 use App\Enums\EventStatus;
+use App\Enums\Region;
 use App\Enums\UserRole;
 use App\Livewire\Forms\EventForm;
 use App\Models\BookingRequest;
 use App\Models\Event;
 use App\Models\User;
+use App\Models\VenueProfile;
 use App\Queries\AvailableAccounts;
 use Flux\Flux;
 use Illuminate\Database\Eloquent\Builder;
@@ -70,6 +72,15 @@ class ManageEvent extends Component
 
     public string $venueSearch = '';
 
+    /** Book artists from the home region (see homeRegion()), rather than one picked by hand. */
+    public bool $useHomeRegion = true;
+
+    /** Only list venues in the host's own region, rather than one picked by hand. */
+    public bool $localVenuesOnly = true;
+
+    /** The region to list venues from when not local only: a Region value, or '' for every region. */
+    public string $venueRegionFilter = '';
+
     public function mount(?Event $event = null): void
     {
         if ($event?->exists) {
@@ -77,6 +88,7 @@ class ManageEvent extends Component
 
             $this->event = $event;
             $this->form->fillFromEvent($event);
+            $this->useHomeRegion = $event->region !== null && $event->region === $this->homeRegion();
 
             return;
         }
@@ -225,14 +237,89 @@ class ManageEvent extends Component
      */
     public function updatedFormDate(): void
     {
-        unset($this->freeArtists, $this->freeVenues);
+        unset($this->freeVenues);
 
-        $free = $this->freeArtists->pluck('id')->map(fn (int $id) => (string) $id)->all();
-        $this->artistIds = array_values(array_intersect($this->artistIds, $free));
+        $this->keepArtistsStillListed();
 
         if (! $this->freeVenues->contains('id', (int) $this->venueId)) {
             $this->venueId = '';
         }
+    }
+
+    public function updatedUseHomeRegion(): void
+    {
+        $this->keepArtistsStillListed();
+    }
+
+    public function updatedLocalVenuesOnly(): void
+    {
+        $this->keepVenueStillListed();
+    }
+
+    public function updatedVenueRegionFilter(): void
+    {
+        $this->keepVenueStillListed();
+    }
+
+    public function updatedFormRegion(): void
+    {
+        $this->keepArtistsStillListed();
+    }
+
+    public function updatedVenueId(): void
+    {
+        $this->keepArtistsStillListed();
+    }
+
+    /**
+     * The region of the venue hosting the event: the one picked here, the event's own, or the host's.
+     */
+    public function venueRegion(): ?Region
+    {
+        $venue = $this->venueId !== ''
+            ? VenueProfile::firstWhere('user_id', (int) $this->venueId)
+            : ($this->event->venue ?? $this->user()->venueProfile);
+
+        return $venue?->region;
+    }
+
+    /**
+     * The host's own region, from their venue, artist or organiser profile.
+     */
+    public function ownRegion(): ?Region
+    {
+        $user = $this->user();
+
+        return ($user->venueProfile ?? $user->artistProfile ?? $user->organiserProfile)?->region;
+    }
+
+    /**
+     * Where artists are booked from by default: the venue's region, or the host's own when there's
+     * no venue (or it has no region). Someone touring can switch to any other region.
+     */
+    public function homeRegion(): ?Region
+    {
+        return $this->venueRegion() ?? $this->ownRegion();
+    }
+
+    /**
+     * The region artists are booked from; null means every region.
+     */
+    public function eventRegion(): ?Region
+    {
+        $homeRegion = $this->useHomeRegion ? $this->homeRegion() : null;
+
+        return $homeRegion ?? Region::tryFrom($this->form->region);
+    }
+
+    /**
+     * The region venues are listed from: the host's own by default; null means every region.
+     */
+    public function venueListRegion(): ?Region
+    {
+        $ownRegion = $this->localVenuesOnly ? $this->ownRegion() : null;
+
+        return $ownRegion ?? Region::tryFrom($this->venueRegionFilter);
     }
 
     public function save(): void
@@ -242,6 +329,7 @@ class ManageEvent extends Component
         $this->authorize($isNew ? 'create' : 'update', $this->event ?? Event::class);
 
         $this->fillLocationFromVenue();
+        $this->form->region = (string) $this->eventRegion()?->value;
 
         $attributes = $this->form->attributes($isNew);
         $recipientIds = $this->recipientIds();
@@ -313,7 +401,7 @@ class ManageEvent extends Component
     public function freeArtists(): Collection
     {
         return $this->canSendBookingRequests()
-            ? $this->freeAccounts(UserRole::Artist, $this->artistSearch)
+            ? $this->freeAccounts(UserRole::Artist, $this->artistSearch, $this->eventRegion())
             : new Collection;
     }
 
@@ -326,7 +414,7 @@ class ManageEvent extends Component
     public function freeVenues(): Collection
     {
         return $this->canBookVenue()
-            ? $this->freeAccounts(UserRole::Venue, $this->venueSearch)
+            ? $this->freeAccounts(UserRole::Venue, $this->venueSearch, $this->venueListRegion())
             : new Collection;
     }
 
@@ -374,7 +462,7 @@ class ManageEvent extends Component
     /**
      * @return Collection<int, User>
      */
-    private function freeAccounts(UserRole $role, string $search): Collection
+    private function freeAccounts(UserRole $role, string $search, ?Region $region = null): Collection
     {
         $date = $this->validDate($this->form->date);
 
@@ -385,11 +473,41 @@ class ManageEvent extends Component
         $day = Carbon::createFromFormat('Y-m-d', $date)->toImmutable()->startOfDay();
 
         return app(AvailableAccounts::class)
-            ->query($this->user(), $day, $day, [$role], $search)
+            ->query($this->user(), $day, $day, [$role], $search, $region)
             ->when($this->event, fn (Builder $query, Event $event) => $query
                 ->whereDoesntHave('receivedBookingRequests', fn (Builder $requests) => $requests->where('event_id', $event->id)))
             ->limit(50)
             ->get();
+    }
+
+    /**
+     * The list of free artists has changed: untick anyone no longer on it (a search only narrows
+     * what's shown, so it doesn't untick anyone).
+     */
+    private function keepArtistsStillListed(): void
+    {
+        unset($this->freeArtists);
+
+        $free = $this->freeAccounts(UserRole::Artist, '', $this->eventRegion())
+            ->pluck('id')
+            ->map(fn (int $id) => (string) $id)
+            ->all();
+
+        $this->artistIds = array_values(array_intersect($this->artistIds, $free));
+    }
+
+    /**
+     * The venue list's region has changed: drop the picked venue if it's no longer on it, and with
+     * it the artists listed from its region.
+     */
+    private function keepVenueStillListed(): void
+    {
+        unset($this->freeVenues);
+
+        if ($this->venueId !== '' && ! $this->freeAccounts(UserRole::Venue, '', $this->venueListRegion())->contains('id', (int) $this->venueId)) {
+            $this->venueId = '';
+            $this->keepArtistsStillListed();
+        }
     }
 
     /**

@@ -4,6 +4,13 @@
 
 <flux:input wire:model="form.location" :label="__('Venue Location')" required autocomplete="street-address" :placeholder="__('Enter venue address')" />
 
+@include('partials.profile-fields.region')
+
+<div class="grid grid-cols-2 gap-4">
+    <flux:input wire:model="form.stage_width" :label="__('Stage Width in metres (optional)')" type="number" min="1" max="99" step="0.1" :placeholder="__('e.g. 6')" />
+    <flux:input wire:model="form.stage_depth" :label="__('Stage Depth in metres (optional)')" type="number" min="1" max="99" step="0.1" :placeholder="__('e.g. 4')" />
+</div>
+
 <flux:input wire:model="form.min_door_charge" :label="__('Minimum Door Charge (ZAR)')" type="number" min="0" step="1" required placeholder="0" />
 
 <div class="flex flex-col gap-2" role="group" aria-labelledby="sound-engineer-label">

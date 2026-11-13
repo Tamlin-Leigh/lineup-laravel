@@ -69,7 +69,15 @@
             </div>
         </div>
 
-        <flux:input wire:model.live.debounce.400ms="search" type="search" icon="magnifying-glass" :placeholder="__('Search by name, genre or location')" :aria-label="__('Search')" />
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_14rem]">
+            <flux:input wire:model.live.debounce.400ms="search" type="search" icon="magnifying-glass" :placeholder="__('Search by name, genre or location')" :aria-label="__('Search')" />
+            <flux:select wire:model.live="region" :aria-label="__('Region')" data-test="discover-region">
+                <flux:select.option value="">{{ __('All regions') }}</flux:select.option>
+                @foreach (App\Enums\Region::options() as $value => $label)
+                    <flux:select.option value="{{ $value }}">{{ __($label) }}</flux:select.option>
+                @endforeach
+            </flux:select>
+        </div>
     </x-profile-section>
 
     <div class="flex flex-wrap items-baseline justify-between gap-2">
@@ -104,10 +112,16 @@
                                     @case(UserRole::Venue)
                                         {{ $account->venueProfile?->location }}
                                         @if ($account->venueProfile) &middot; {{ __('Capacity :count', ['count' => number_format($account->venueProfile->capacity)]) }} @endif
+                                        @if ($account->venueProfile?->region) &middot; {{ __($account->venueProfile->region->label()) }} @endif
                                         @break
                                     @case(UserRole::Artist)
                                         {{ $account->artistProfile?->genre }}
                                         @if ($account->artistProfile) &middot; {{ trans_choice(':count member|:count members', $account->artistProfile->member_count) }} @endif
+                                        @if ($account->artistProfile?->region) &middot; {{ __($account->artistProfile->region->label()) }} @endif
+                                        @break
+                                    @case(UserRole::Organiser)
+                                        {{ $account->organiserProfile?->org_name ?? $account->name }}
+                                        @if ($account->organiserProfile?->region) &middot; {{ __($account->organiserProfile->region->label()) }} @endif
                                         @break
                                     @default
                                         {{ $account->name }}

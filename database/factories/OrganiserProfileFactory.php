@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\Region;
 use App\Enums\UserRole;
 use App\Models\OrganiserProfile;
 use App\Models\User;
@@ -24,6 +25,7 @@ class OrganiserProfileFactory extends Factory
             'org_name' => fake()->company(),
             'contact_number' => fake()->numerify('0#########'),
             'contact_email' => fake()->companyEmail(),
+            'region' => Region::Johannesburg,
         ];
     }
 }

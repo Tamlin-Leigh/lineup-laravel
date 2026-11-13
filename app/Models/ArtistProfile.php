@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Region;
 use Database\Factories\ArtistProfileFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -20,6 +21,7 @@ use Illuminate\Support\Carbon;
  * @property int $member_count
  * @property string $member_names
  * @property string $genre
+ * @property Region|null $region Null only for accounts created before regions existed.
  * @property string|null $bio
  * @property int|null $booking_fee Whole rand (ZAR); null when the artist hasn't set one.
  * @property bool $accepts_door_split Open to playing for a share of the door or ticket sales.
@@ -28,7 +30,7 @@ use Illuminate\Support\Carbon;
  */
 #[Fillable([
     'manager_name', 'manager_phone', 'manager_email',
-    'artist_name', 'member_count', 'member_names', 'genre', 'bio',
+    'artist_name', 'member_count', 'member_names', 'genre', 'region', 'bio',
     'booking_fee', 'accepts_door_split',
 ])]
 class ArtistProfile extends Model
@@ -45,6 +47,7 @@ class ArtistProfile extends Model
     {
         return [
             'member_count' => 'integer',
+            'region' => Region::class,
             'booking_fee' => 'integer',
             'accepts_door_split' => 'boolean',
         ];

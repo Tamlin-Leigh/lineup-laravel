@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\BookingStatus;
 use App\Enums\EventStatus;
+use App\Enums\Region;
 use App\Enums\UserRole;
 use Database\Factories\EventFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -23,6 +24,7 @@ use Illuminate\Support\Carbon;
  * @property string $title
  * @property string|null $description
  * @property string $location
+ * @property Region|null $region Where artists are booked from; null means every region.
  * @property Carbon $starts_at
  * @property int $price Whole rand (ZAR); 0 means free.
  * @property int $artist_slots How many artists play, the host artist included.
@@ -30,7 +32,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['venue_profile_id', 'title', 'description', 'location', 'starts_at', 'price', 'artist_slots', 'status'])]
+#[Fillable(['venue_profile_id', 'title', 'description', 'location', 'region', 'starts_at', 'price', 'artist_slots', 'status'])]
 class Event extends Model
 {
     /** @use HasFactory<EventFactory> */
@@ -54,6 +56,7 @@ class Event extends Model
     protected function casts(): array
     {
         return [
+            'region' => Region::class,
             'starts_at' => 'datetime',
             'price' => 'integer',
             'artist_slots' => 'integer',

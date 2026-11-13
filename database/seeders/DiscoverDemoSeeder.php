@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Actions\UpdateAvailability;
+use App\Enums\Region;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -21,9 +22,10 @@ class DiscoverDemoSeeder extends Seeder
     public function run(UpdateAvailability $availability): void
     {
         foreach (['venue' => 3, 'artist' => 4, 'organiser' => 2] as $state => $count) {
-            User::factory()->{$state}()->count($count)->create()->each(
-                fn (User $user) => $availability->markFree($user, $this->someUpcomingDays()),
-            );
+            User::factory()->{$state}()->count($count)->create()->each(function (User $user) use ($availability) {
+                ($user->artistProfile ?? $user->venueProfile ?? $user->organiserProfile)?->update(['region' => fake()->randomElement(Region::cases())]);
+                $availability->markFree($user, $this->someUpcomingDays());
+            });
         }
     }
 

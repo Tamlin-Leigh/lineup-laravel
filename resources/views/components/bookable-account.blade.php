@@ -4,11 +4,11 @@
     stops unticked boxes being ticked once the surrounding x-data's left() reaches zero (it also
     needs a picked(id) there).
 --}}
-@props(['account', 'type' => 'checkbox', 'model', 'limited' => false])
+@props(['account', 'type' => 'checkbox', 'model', 'limited' => false, 'live' => false])
 
 @php
     $detail = $account->artistProfile
-        ? $account->artistProfile->genre.' · '.$account->artistProfile->bookingTerms()
+        ? collect([$account->artistProfile->genre, $account->artistProfile->bookingTerms(), $account->artistProfile->region?->label()])->filter()->implode(' · ')
         : ($account->venueProfile
             ? $account->venueProfile->location.' · '.__('Capacity :count', ['count' => number_format($account->venueProfile->capacity)])
             : '');
@@ -17,7 +17,7 @@
 <label {{ $attributes->class('flex cursor-pointer items-center gap-3 rounded-xl border border-zinc-200 bg-white p-3 transition has-checked:border-brand has-checked:bg-brand/5 has-disabled:cursor-not-allowed has-disabled:opacity-50') }}>
     <input
         type="{{ $type }}"
-        wire:model="{{ $model }}"
+        wire:model{{ $live ? '.live' : '' }}="{{ $model }}"
         value="{{ $account->id }}"
         class="size-4 accent-brand"
         {{-- picked() rather than $el.checked: the latter isn't reactive, so after a re-render (e.g. a search) ticked boxes got disabled too. --}}

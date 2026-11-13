@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\EventDay;
+use App\Enums\Region;
 use App\Enums\SoundEngineer;
 use App\Enums\UserRole;
 use App\Models\User;
@@ -31,6 +32,8 @@ class VenueProfileFactory extends Factory
             'manager_email' => fake()->safeEmail(),
             'capacity' => fake()->numberBetween(50, 2000),
             'location' => fake()->address(),
+            // The same region as ArtistProfileFactory, so artists show up for a venue's events by default.
+            'region' => Region::Johannesburg,
             'min_door_charge' => fake()->numberBetween(0, 300),
             'sound_engineer' => $soundEngineer,
             'sound_engineer_name' => $soundEngineer === SoundEngineer::InHouse ? fake()->name() : null,

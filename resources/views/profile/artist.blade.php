@@ -24,6 +24,8 @@
                 </span>
             </x-slot:heading>
 
+            <p class="text-zinc-900">{{ __('Region: :region', ['region' => $artist?->region ? __($artist->region->label()) : __('Not set')]) }}</p>
+
             @if ($artist?->bio)
                 <p class="whitespace-pre-line text-zinc-900">{{ $artist->bio }}</p>
             @else

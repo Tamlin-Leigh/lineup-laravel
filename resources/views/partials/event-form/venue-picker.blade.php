@@ -2,7 +2,11 @@
     The venues free on the event's date (one can be asked at a time). In the new event wizard
     (`$withElsewhere`), "Somewhere else" is the alternative and asks for a location instead.
 --}}
-@php $withElsewhere ??= false; @endphp
+@php
+    $withElsewhere ??= false;
+    $ownRegion = $this->ownRegion();
+    $listRegion = $this->venueListRegion();
+@endphp
 
 <x-profile-section data-test="book-venue">
     <x-slot:heading>{{ $withElsewhere ? __('Where is it?') : __('Book a Venue') }}</x-slot:heading>
@@ -13,19 +17,42 @@
             : __('Pick a date to see which venues are free.') }}
     </flux:text>
 
+    {{-- Venues near the host by default; touring hosts can look further afield. --}}
+    <div class="flex flex-col gap-3" data-test="venue-region">
+        @if ($ownRegion)
+            <flux:switch wire:model.live="localVenuesOnly" :label="__('Only venues in your region (:region)', ['region' => __($ownRegion->label())])" :description="__('Turn this off to find venues in another region, e.g. for a tour.')" data-test="local-venues-only" />
+        @endif
+
+        @if (! $ownRegion || ! $localVenuesOnly)
+            <flux:select wire:model.live="venueRegionFilter" :label="__('Show venues in')" data-test="venue-region-select">
+                <flux:select.option value="">{{ __('All regions') }}</flux:select.option>
+                @foreach (App\Enums\Region::options() as $value => $label)
+                    <flux:select.option value="{{ $value }}">{{ __($label) }}</flux:select.option>
+                @endforeach
+            </flux:select>
+        @endif
+    </div>
+
     @if ($this->freeVenues->isNotEmpty() || $venueSearch !== '')
         <flux:input wire:model.live.debounce.400ms="venueSearch" type="search" icon="magnifying-glass" :placeholder="__('Search by venue name or location')" :aria-label="__('Search venues')" />
     @endif
 
     @if ($this->freeVenues->isEmpty())
         <div class="rounded-xl border border-dashed border-zinc-300 p-5 text-center text-sm text-zinc-500">
-            {{ $venueSearch !== '' ? __('No free venues match your search.') : __('No venues have marked themselves free on this date yet.') }}
+            @if ($venueSearch !== '')
+                {{ __('No free venues match your search.') }}
+            @elseif ($listRegion)
+                {{ __('No venues in :region have marked themselves free on this date yet. Try another region.', ['region' => __($listRegion->label())]) }}
+            @else
+                {{ __('No venues have marked themselves free on this date yet.') }}
+            @endif
         </div>
     @endif
 
     <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
         @foreach ($this->freeVenues as $freeVenue)
-            <x-bookable-account :account="$freeVenue" type="radio" model="venueId" wire:key="free-venue-{{ $freeVenue->id }}" data-test="free-venue-{{ $freeVenue->id }}" />
+            {{-- On the edit page the artists are listed below, and depend on the venue's region. --}}
+            <x-bookable-account :account="$freeVenue" type="radio" model="venueId" :live="! $withElsewhere" wire:key="free-venue-{{ $freeVenue->id }}" data-test="free-venue-{{ $freeVenue->id }}" />
         @endforeach
 
         @if ($withElsewhere)
@@ -50,7 +77,7 @@
         </div>
     @elseif ($this->freeVenues->isNotEmpty())
         <div x-show="$wire.venueId" x-cloak>
-            <flux:button size="sm" variant="ghost" x-on:click="$wire.venueId = ''">{{ __('Clear venue') }}</flux:button>
+            <flux:button size="sm" variant="ghost" x-on:click="$wire.set('venueId', '')">{{ __('Clear venue') }}</flux:button>
         </div>
     @endif
 </x-profile-section>

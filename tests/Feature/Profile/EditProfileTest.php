@@ -231,6 +231,7 @@ test('a profile missing its role record is created on first save', function () {
             'form.org_name' => 'Late Starters',
             'form.contact_number' => '0211234567',
             'form.contact_email' => 'hi@late.test',
+            'form.region' => 'durban',
         ])
         ->call('save')
         ->assertHasNoErrors();
