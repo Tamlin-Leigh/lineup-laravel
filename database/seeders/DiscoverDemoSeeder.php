@@ -23,7 +23,7 @@ class DiscoverDemoSeeder extends Seeder
     {
         foreach (['venue' => 3, 'artist' => 4, 'organiser' => 2] as $state => $count) {
             User::factory()->{$state}()->count($count)->create()->each(function (User $user) use ($availability) {
-                ($user->artistProfile ?? $user->venueProfile)?->update(['region' => fake()->randomElement(Region::cases())]);
+                ($user->artistProfile ?? $user->venueProfile ?? $user->organiserProfile)?->update(['region' => fake()->randomElement(Region::cases())]);
                 $availability->markFree($user, $this->someUpcomingDays());
             });
         }

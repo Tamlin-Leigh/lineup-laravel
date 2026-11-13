@@ -161,7 +161,7 @@ class EditProfile extends Component
     private function tabFor(string $errorKey): string
     {
         $field = explode('.', str_replace('form.', '', $errorKey))[0];
-        // Venues and artists both have a region, on the details tab named after their role.
+        // Every role has a region, on the details tab named after the role.
         $tab = $field === 'region' ? $this->user->role->value : (self::FIELD_TABS[$field] ?? 'account');
 
         return array_key_exists($tab, $this->tabs()) ? $tab : 'account';

@@ -72,8 +72,14 @@ class ManageEvent extends Component
 
     public string $venueSearch = '';
 
-    /** Book artists from the venue's region (when there's a venue), rather than one picked by hand. */
-    public bool $useVenueRegion = true;
+    /** Book artists from the home region (see homeRegion()), rather than one picked by hand. */
+    public bool $useHomeRegion = true;
+
+    /** Only list venues in the host's own region, rather than one picked by hand. */
+    public bool $localVenuesOnly = true;
+
+    /** The region to list venues from when not local only: a Region value, or '' for every region. */
+    public string $venueRegionFilter = '';
 
     public function mount(?Event $event = null): void
     {
@@ -82,7 +88,7 @@ class ManageEvent extends Component
 
             $this->event = $event;
             $this->form->fillFromEvent($event);
-            $this->useVenueRegion = $event->region !== null && $event->region === $this->venueRegion();
+            $this->useHomeRegion = $event->region !== null && $event->region === $this->homeRegion();
 
             return;
         }
@@ -240,9 +246,19 @@ class ManageEvent extends Component
         }
     }
 
-    public function updatedUseVenueRegion(): void
+    public function updatedUseHomeRegion(): void
     {
         $this->keepArtistsStillListed();
+    }
+
+    public function updatedLocalVenuesOnly(): void
+    {
+        $this->keepVenueStillListed();
+    }
+
+    public function updatedVenueRegionFilter(): void
+    {
+        $this->keepVenueStillListed();
     }
 
     public function updatedFormRegion(): void
@@ -268,13 +284,42 @@ class ManageEvent extends Component
     }
 
     /**
+     * The host's own region, from their venue, artist or organiser profile.
+     */
+    public function ownRegion(): ?Region
+    {
+        $user = $this->user();
+
+        return ($user->venueProfile ?? $user->artistProfile ?? $user->organiserProfile)?->region;
+    }
+
+    /**
+     * Where artists are booked from by default: the venue's region, or the host's own when there's
+     * no venue (or it has no region). Someone touring can switch to any other region.
+     */
+    public function homeRegion(): ?Region
+    {
+        return $this->venueRegion() ?? $this->ownRegion();
+    }
+
+    /**
      * The region artists are booked from; null means every region.
      */
     public function eventRegion(): ?Region
     {
-        $venueRegion = $this->useVenueRegion ? $this->venueRegion() : null;
+        $homeRegion = $this->useHomeRegion ? $this->homeRegion() : null;
 
-        return $venueRegion ?? Region::tryFrom($this->form->region);
+        return $homeRegion ?? Region::tryFrom($this->form->region);
+    }
+
+    /**
+     * The region venues are listed from: the host's own by default; null means every region.
+     */
+    public function venueListRegion(): ?Region
+    {
+        $ownRegion = $this->localVenuesOnly ? $this->ownRegion() : null;
+
+        return $ownRegion ?? Region::tryFrom($this->venueRegionFilter);
     }
 
     public function save(): void
@@ -369,7 +414,7 @@ class ManageEvent extends Component
     public function freeVenues(): Collection
     {
         return $this->canBookVenue()
-            ? $this->freeAccounts(UserRole::Venue, $this->venueSearch)
+            ? $this->freeAccounts(UserRole::Venue, $this->venueSearch, $this->venueListRegion())
             : new Collection;
     }
 
@@ -449,6 +494,20 @@ class ManageEvent extends Component
             ->all();
 
         $this->artistIds = array_values(array_intersect($this->artistIds, $free));
+    }
+
+    /**
+     * The venue list's region has changed: drop the picked venue if it's no longer on it, and with
+     * it the artists listed from its region.
+     */
+    private function keepVenueStillListed(): void
+    {
+        unset($this->freeVenues);
+
+        if ($this->venueId !== '' && ! $this->freeAccounts(UserRole::Venue, '', $this->venueListRegion())->contains('id', (int) $this->venueId)) {
+            $this->venueId = '';
+            $this->keepArtistsStillListed();
+        }
     }
 
     /**

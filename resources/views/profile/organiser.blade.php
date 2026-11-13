@@ -10,6 +10,7 @@
             <p class="text-zinc-900">{{ $organiser->org_name }}</p>
             <flux:link href="tel:{{ $organiser->contact_number }}">{{ $organiser->contact_number }}</flux:link>
             <flux:link href="mailto:{{ $organiser->contact_email }}">{{ $organiser->contact_email }}</flux:link>
+            <p class="text-zinc-900">{{ __('Region: :region', ['region' => $organiser->region ? __($organiser->region->label()) : __('Not set')]) }}</p>
         @endif
     </x-profile-section>
 </x-profile-tab>

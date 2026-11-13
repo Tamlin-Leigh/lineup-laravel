@@ -71,6 +71,28 @@ test('an artist has to choose a valid region and it is saved on their profile', 
     expect($artist->artistProfile->fresh()->region)->toBe(Region::Durban);
 });
 
+test('an organiser has to choose a region and it is saved on their profile', function () {
+    $organiser = User::factory()->organiser()->create();
+    $organiser->organiserProfile->update(['region' => null]);
+
+    $component = Livewire::actingAs($organiser->fresh())->test(EditProfile::class)
+        ->call('edit')
+        ->assertSet('form.region', '')
+        ->call('save')
+        ->assertHasErrors(['form.region' => 'required'])
+        ->assertSet('tab', 'organiser')
+        ->set('form.region', Region::Pretoria->value)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $component->assertSee('Pretoria');
+    expect($organiser->organiserProfile->fresh()->region)->toBe(Region::Pretoria);
+
+    Livewire::actingAs($organiser->fresh())->test(EditProfile::class)
+        ->call('edit')
+        ->assertSet('form.region', Region::Pretoria->value);
+});
+
 test('a venue saves its region and an optional stage size', function () {
     $venue = venueIn(null);
 
@@ -146,6 +168,9 @@ test('discover can be filtered by region', function () {
     Availability::factory()->for($venue)->create(['date' => '2026-10-24']);
     $organiser = User::factory()->organiser()->create();
     Availability::factory()->for($organiser)->create(['date' => '2026-10-24']);
+    $durbanOrganiser = User::factory()->organiser()->create();
+    $durbanOrganiser->organiserProfile->update(['region' => Region::Durban]);
+    Availability::factory()->for($durbanOrganiser)->create(['date' => '2026-10-24']);
 
     $found = fn (Testable $component) => $component->instance()->results->pluck('id')->sort()->values()->all();
 
@@ -153,10 +178,10 @@ test('discover can be filtered by region', function () {
         ->test(Discover::class)
         ->set(['when' => 'day', 'day' => '2026-10-24']);
 
-    expect($found($component))->toEqual(collect([$joburg, $durban, $notSet, $venue, $organiser])->pluck('id')->sort()->values()->all());
+    expect($found($component))->toEqual(collect([$joburg, $durban, $notSet, $venue, $organiser, $durbanOrganiser])->pluck('id')->sort()->values()->all());
 
-    expect($found($component->set('region', Region::Durban->value)))->toEqual(collect([$durban, $venue])->pluck('id')->sort()->values()->all())
-        ->and($found($component->set('region', 'atlantis')))->toHaveCount(5);
+    expect($found($component->set('region', Region::Durban->value)))->toEqual(collect([$durban, $venue, $durbanOrganiser])->pluck('id')->sort()->values()->all())
+        ->and($found($component->set('region', 'atlantis')))->toHaveCount(6);
 });
 
 test('a venue books from its own region by default and can switch to any other', function () {
@@ -169,13 +194,13 @@ test('a venue books from its own region by default and can switch to any other',
 
     expect(listedArtists($component))->toBe([$local->id]);
 
-    $component->set('useVenueRegion', false);
+    $component->set('useHomeRegion', false);
     expect(listedArtists($component))->toBe([$local->id, $joburg->id, $notSet->id]);
 
     $component->set('form.region', Region::Johannesburg->value);
     expect(listedArtists($component))->toBe([$joburg->id]);
 
-    $component->set('useVenueRegion', true);
+    $component->set('useHomeRegion', true);
     expect(listedArtists($component))->toBe([$local->id]);
 });
 
@@ -188,7 +213,7 @@ test('the event saves the region it books from', function (bool $useVenue, strin
             'form.location' => 'The Park',
             'form.date' => '2026-10-24',
             'form.artist_slots' => '1',
-            'useVenueRegion' => $useVenue,
+            'useHomeRegion' => $useVenue,
             'form.region' => $picked,
         ])
         ->call('save')
@@ -208,7 +233,7 @@ test('switching region unticks artists who are no longer listed', function () {
 
     newEventFor($venue)
         ->set('artistIds', [(string) $local->id])
-        ->set('useVenueRegion', false)
+        ->set('useHomeRegion', false)
         ->assertSet('artistIds', [(string) $local->id])
         ->set('form.region', Region::Johannesburg->value)
         ->assertSet('artistIds', []);
@@ -223,25 +248,101 @@ test('searching does not untick artists when the region changes', function () {
     newEventFor($venue)
         ->set('artistIds', [(string) $picked->id])
         ->set('artistSearch', 'Searchable')
-        ->set('useVenueRegion', false)
+        ->set('useHomeRegion', false)
         ->assertSet('artistIds', [(string) $picked->id]);
 });
 
-test('the default follows the venue picked by an organiser', function () {
+test('an organiser books artists from their own region until they pick a venue', function () {
     $venue = venueIn(Region::Durban);
     Availability::factory()->for($venue)->create(['date' => '2026-10-24']);
     $inDurban = artistIn(Region::Durban);
-    $elsewhere = artistIn(Region::Pretoria);
+    $inPretoria = artistIn(Region::Pretoria);
+    $organiser = User::factory()->organiser()->create();
+    $organiser->organiserProfile->update(['region' => Region::Pretoria]);
 
-    $component = newEventFor(User::factory()->organiser()->create());
+    $component = newEventFor($organiser)->set('localVenuesOnly', false);
 
-    expect($component->instance()->venueRegion())->toBeNull()
-        ->and(listedArtists($component))->toBe([$inDurban->id, $elsewhere->id]);
+    expect($component->instance()->homeRegion())->toBe(Region::Pretoria)
+        ->and(listedArtists($component))->toBe([$inPretoria->id]);
+
+    // "Somewhere else" for now: on to the line-up step.
+    $component->set('form.location', 'The Park')->call('next')->call('next')
+        ->assertSet('step', 2)
+        ->assertSee('Use your region (Pretoria)');
 
     $component->set('venueId', (string) $venue->id);
 
-    expect($component->instance()->venueRegion())->toBe(Region::Durban)
+    expect($component->instance()->homeRegion())->toBe(Region::Durban)
         ->and(listedArtists($component))->toBe([$inDurban->id]);
+
+    $component->set('useHomeRegion', false);
+
+    expect(listedArtists($component))->toBe([$inDurban->id, $inPretoria->id]);
+});
+
+/**
+ * @return list<int>
+ */
+function listedVenues(Testable $component): array
+{
+    return $component->instance()->freeVenues->pluck('id')->sort()->values()->all();
+}
+
+function freeVenueIn(?Region $region): User
+{
+    $venue = venueIn($region);
+    Availability::factory()->for($venue)->create(['date' => '2026-10-24']);
+
+    return $venue;
+}
+
+test('artists and organisers see venues in their own region first and can look further afield', function (string $role) {
+    $local = freeVenueIn(Region::Limpopo);
+    $capeTown = freeVenueIn(Region::CapeTown);
+    $notSet = freeVenueIn(null);
+
+    $host = User::factory()->{$role}()->create();
+    ($host->artistProfile ?? $host->organiserProfile)->update(['region' => Region::Limpopo]);
+
+    $component = newEventFor($host);
+
+    expect(listedVenues($component))->toBe([$local->id]);
+    $component->call('next')->assertSee('Only venues in your region (Limpopo)')->assertDontSee('Show venues in');
+
+    $component->set('localVenuesOnly', false);
+    expect(listedVenues($component))->toBe([$local->id, $capeTown->id, $notSet->id]);
+    $component->assertSee('Show venues in');
+
+    $component->set('venueRegionFilter', Region::CapeTown->value);
+    expect(listedVenues($component))->toBe([$capeTown->id]);
+})->with(['artist', 'organiser']);
+
+test('a host without a region sees every venue and picks a region by hand', function () {
+    $durban = freeVenueIn(Region::Durban);
+    $pretoria = freeVenueIn(Region::Pretoria);
+    $organiser = User::factory()->organiser()->create();
+    $organiser->organiserProfile->update(['region' => null]);
+
+    $component = newEventFor($organiser)->call('next');
+
+    expect(listedVenues($component))->toBe([$durban->id, $pretoria->id])
+        ->and($component->html())->not->toContain('data-test="local-venues-only"');
+
+    $component->set('venueRegionFilter', Region::Pretoria->value);
+    expect(listedVenues($component))->toBe([$pretoria->id]);
+});
+
+test('narrowing the venue region drops a picked venue that is no longer listed', function () {
+    $capeTown = freeVenueIn(Region::CapeTown);
+    $organiser = User::factory()->organiser()->create();
+
+    newEventFor($organiser)
+        ->set('localVenuesOnly', false)
+        ->set('venueId', (string) $capeTown->id)
+        ->set('venueRegionFilter', Region::CapeTown->value)
+        ->assertSet('venueId', (string) $capeTown->id)
+        ->set('venueRegionFilter', Region::Durban->value)
+        ->assertSet('venueId', '');
 });
 
 test('without a venue region the host just picks one', function () {
@@ -251,7 +352,7 @@ test('without a venue region the host just picks one', function () {
 
     $component = newEventFor($venue);
 
-    expect($component->html())->not->toContain('data-test="use-venue-region"')
+    expect($component->html())->not->toContain('data-test="use-home-region"')
         ->and(listedArtists($component))->toBe([$durban->id, $pretoria->id]);
 
     $component->set('form.region', Region::Pretoria->value);
@@ -269,7 +370,7 @@ test('editing an event keeps the region it was saved with', function (?Region $s
     ]);
 
     Livewire::actingAs($venue)->test(ManageEvent::class, ['event' => $event])
-        ->assertSet('useVenueRegion', $followsVenue)
+        ->assertSet('useHomeRegion', $followsVenue)
         ->set('form.title', 'Renamed')
         ->call('save')
         ->assertHasNoErrors();
@@ -295,7 +396,7 @@ test('the event form shows the toggle, and the region list once it is off', func
         ->assertSeeHtml('data-test="event-region"')
         ->assertSee('Use the venue&#039;s region (Cape Town)', false)
         ->assertDontSee('Book artists from')
-        ->set('useVenueRegion', false)
+        ->set('useHomeRegion', false)
         ->assertSee('Book artists from')
         ->assertSee('All regions')
         ->assertSee('Mpumalanga');

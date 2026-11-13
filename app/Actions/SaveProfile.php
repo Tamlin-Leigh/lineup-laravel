@@ -90,6 +90,7 @@ class SaveProfile
             'org_name' => $input['org_name'],
             'contact_number' => $input['contact_number'],
             'contact_email' => $input['contact_email'],
+            'region' => $input['region'],
         ]);
 
         $this->syncLinks($profile, LinkKind::Social, $input['social_links'] ?? []);

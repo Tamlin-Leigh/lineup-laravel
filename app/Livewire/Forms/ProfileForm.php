@@ -34,7 +34,7 @@ class ProfileForm extends Form
 
     public string $phone = '';
 
-    // Region (venue + artist)
+    // Region (every role with a profile)
     public string $region = '';
 
     // Manager (venue + artist)
@@ -166,6 +166,7 @@ class ProfileForm extends Form
                 'org_name' => $organiser->org_name,
                 'contact_number' => $organiser->contact_number,
                 'contact_email' => $organiser->contact_email,
+                'region' => (string) $organiser->region?->value,
                 'social_links' => $this->linkRows($organiser->links, LinkKind::Social),
             ]);
         }
@@ -244,6 +245,7 @@ class ProfileForm extends Form
                 'org_name' => ['required', 'string', 'max:255'],
                 'contact_number' => $phone,
                 'contact_email' => $email,
+                'region' => ['required', Rule::enum(Region::class)],
                 ...$this->linkRules('social_links'),
             ],
             default => [],

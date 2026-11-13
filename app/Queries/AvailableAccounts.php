@@ -46,7 +46,8 @@ class AvailableAccounts
             ->when(trim($search) !== '', fn (Builder $query) => $this->search($query, trim($search)))
             ->when($region, fn (Builder $query, Region $region) => $query->where(fn (Builder $query) => $query
                 ->whereRelation('artistProfile', 'region', $region)
-                ->orWhereRelation('venueProfile', 'region', $region)))
+                ->orWhereRelation('venueProfile', 'region', $region)
+                ->orWhereRelation('organiserProfile', 'region', $region)))
             ->orderByDesc('free_days_count')
             ->orderBy('name');
     }

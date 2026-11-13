@@ -125,6 +125,9 @@
         @if ($organiser)
             <x-profile-section :title="__('Organisation')">
                 <p class="text-zinc-900">{{ $organiser->org_name }}</p>
+                @if ($organiser->region)
+                    <p class="text-zinc-900">{{ __('Region: :region', ['region' => __($organiser->region->label())]) }}</p>
+                @endif
             </x-profile-section>
         @endif
 

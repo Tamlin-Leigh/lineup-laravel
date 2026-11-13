@@ -6,6 +6,7 @@
 @php
     $taken = $this->takenArtistSlots();
     $venueRegion = $this->venueRegion();
+    $homeRegion = $this->homeRegion();
     $eventRegion = $this->eventRegion();
 @endphp
 
@@ -57,11 +58,18 @@
     </div>
 
     <div class="flex flex-col gap-3" data-test="event-region">
-        @if ($venueRegion)
-            <flux:switch wire:model.live="useVenueRegion" :label="__('Use the venue\'s region (:region)', ['region' => __($venueRegion->label())])" :description="__('Turn this off to book artists from another region.')" data-test="use-venue-region" />
+        @if ($homeRegion)
+            <flux:switch
+                wire:model.live="useHomeRegion"
+                :label="$venueRegion
+                    ? __('Use the venue\'s region (:region)', ['region' => __($venueRegion->label())])
+                    : __('Use your region (:region)', ['region' => __($homeRegion->label())])"
+                :description="__('Turn this off to book artists from another region.')"
+                data-test="use-home-region"
+            />
         @endif
 
-        @if (! $venueRegion || ! $useVenueRegion)
+        @if (! $homeRegion || ! $useHomeRegion)
             <flux:select wire:model.live="form.region" :label="__('Book artists from')" data-test="event-region-select">
                 <flux:select.option value="">{{ __('All regions') }}</flux:select.option>
                 @foreach (App\Enums\Region::options() as $value => $label)

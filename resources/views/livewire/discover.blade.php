@@ -119,6 +119,10 @@
                                         @if ($account->artistProfile) &middot; {{ trans_choice(':count member|:count members', $account->artistProfile->member_count) }} @endif
                                         @if ($account->artistProfile?->region) &middot; {{ __($account->artistProfile->region->label()) }} @endif
                                         @break
+                                    @case(UserRole::Organiser)
+                                        {{ $account->organiserProfile?->org_name ?? $account->name }}
+                                        @if ($account->organiserProfile?->region) &middot; {{ __($account->organiserProfile->region->label()) }} @endif
+                                        @break
                                     @default
                                         {{ $account->name }}
                                 @endswitch
