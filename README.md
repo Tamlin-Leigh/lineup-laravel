@@ -4,6 +4,9 @@ A booking platform connecting **artists**, **venues** and **event organisers**, 
 
 > Work in progress. See [PLAN.md](PLAN.md) for the architecture and roadmap.
 
+> **Proprietary software. All rights reserved.** This code is shared for portfolio viewing only. It may not be
+> used, copied, modified, deployed or distributed without written permission. See [LICENSE](LICENSE).
+
 ## Stack
 
 - **Laravel 13** on PHP 8.4, with Fortify auth (email verification, 2FA, password confirmation)
@@ -120,3 +123,9 @@ runs in Ubuntu. Once everything works, the copy on the Windows drive can be dele
 container is running (`docker compose ps reverb`, start it with `docker compose up -d reverb`) and that port 8085
 is free. After changing any `VITE_REVERB_*` value in `.env`, restart the Vite dev server (`npm run dev`), since
 Vite only reads `.env` when it starts.
+
+## Licence
+
+Copyright (c) 2026 Tamlin Leigh Duckworth. All rights reserved. This repository is published for portfolio
+and assessment purposes only, and no licence is granted to use, copy, modify, deploy or distribute it. See
+[LICENSE](LICENSE) for the full terms.
